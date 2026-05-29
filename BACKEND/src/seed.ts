@@ -1,87 +1,94 @@
 import prisma from "./lib/prisma";
-
-const categories = [
-  { name: 'Men Gifts', icon: '👨' },
-  { name: 'Women Gifts', icon: '👩' },
-  { name: 'Corporate Gifts', icon: '💼' },
-  { name: 'Awards & Trophies', icon: '🏆' },
-  { name: 'Drinkware', icon: '☕' },
-  { name: 'Stationery Gifts', icon: '📝' },
-  { name: 'Tech Gifts', icon: '📱' },
-  { name: 'Personalized Gifts', icon: '✨' },
-  { name: 'Watches Gifts', icon: '⌚' }
-];
-
-const products = [
-  {
-    name: 'Golden Prestige Velvet Award Plaque',
-    price: 4500,
-    oldPrice: 5500,
-    rating: 5,
-    reviewCount: 24,
-    image: '/src/assets/hero.png',
-    categoryName: 'Awards & Trophies',
-    isSale: true,
-    description: 'A premium velvet-lined award plaque for high-level recognition and corporate prestige.',
-    stock: 15
-  },
-  {
-    name: 'Custom Crystal Award on Black Base',
-    price: 3800,
-    rating: 5,
-    reviewCount: 18,
-    image: '/src/assets/gifts for men 1.jpg',
-    categoryName: 'Awards & Trophies',
-    description: 'Elegant custom crystal award with a deep black base for a modern, sophisticated look.',
-    stock: 20
-  },
-  {
-    name: 'Smart LED Temperature Display Thermal Flask',
-    price: 1800,
-    oldPrice: 2200,
-    rating: 4,
-    reviewCount: 56,
-    image: '/src/assets/mug gift 2.jpg',
-    categoryName: 'Drinkware',
-    isSale: true,
-    description: 'Modern thermal flask featuring an LED display that shows the internal temperature of your beverage.',
-    stock: 45
-  },
-  {
-    name: 'Luxury Ladies Jewelry & Watch Gift Set',
-    price: 9500,
-    rating: 5,
-    reviewCount: 38,
-    image: '/src/assets/gifts for women 6.jpg',
-    categoryName: 'Watches Gifts',
-    isNew: true,
-    description: 'An exquisite gift set featuring a luxury watch paired with matching fine jewelry.',
-    stock: 10
-  }
-];
+import { products, categories } from "./data/products";
 
 async function main() {
   console.log('Seeding categories...');
   for (const cat of categories) {
+    const cleanCatName = cat.name.replace(/[^\x00-\x7F]/g, '');
+    const cleanIcon = cat.icon ? cat.icon.replace(/[^\x00-\x7F]/g, '') : '';
     await prisma.category.upsert({
-      where: { name: cat.name },
-      update: {},
-      create: cat,
+      where: { name: cleanCatName },
+      update: { icon: cleanIcon },
+      create: { name: cleanCatName, icon: cleanIcon },
     });
   }
 
   console.log('Seeding products...');
   for (const prod of products) {
+    const cleanCatName = prod.category.replace(/[^\x00-\x7F]/g, '');
     const category = await prisma.category.findUnique({
-      where: { name: prod.categoryName }
+      where: { name: cleanCatName }
     });
 
     if (category) {
-      const { categoryName, ...productData } = prod;
-      await prisma.product.create({
-        data: {
-          ...productData,
+      const cleanName = prod.name.replace(/[^\x00-\x7F]/g, '');
+      const cleanDesc = (prod.description || '').replace(/[^\x00-\x7F]/g, '');
+      
+      await prisma.product.upsert({
+        where: { id: prod.id },
+        update: {
+          name: cleanName,
+          price: prod.price,
+          oldPrice: prod.oldPrice || null,
+          rating: prod.rating,
+          reviewCount: prod.reviews,
+          image: prod.image,
+          isSale: prod.isSale || false,
+          isNew: prod.isNew || false,
+          description: cleanDesc,
           categoryId: category.id
+        },
+        create: {
+          id: prod.id,
+          name: cleanName,
+          price: prod.price,
+          oldPrice: prod.oldPrice || null,
+          rating: prod.rating,
+          reviewCount: prod.reviews,
+          image: prod.image,
+          isSale: prod.isSale || false,
+          isNew: prod.isNew || false,
+          description: cleanDesc,
+          categoryId: category.id,
+          stock: 100
+        }
+      });
+    } else {
+      // Create category if it doesn't exist
+      const newCat = await prisma.category.create({
+        data: { name: cleanCatName }
+      });
+      
+      const cleanName = prod.name.replace(/[^\x00-\x7F]/g, '');
+      const cleanDesc = (prod.description || '').replace(/[^\x00-\x7F]/g, '');
+      
+      await prisma.product.upsert({
+        where: { id: prod.id },
+        update: {
+          name: cleanName,
+          price: prod.price,
+          oldPrice: prod.oldPrice || null,
+          rating: prod.rating,
+          reviewCount: prod.reviews,
+          image: prod.image,
+          isSale: prod.isSale || false,
+          isNew: prod.isNew || false,
+          description: cleanDesc,
+          categoryId: newCat.id
+        },
+        create: {
+          id: prod.id,
+          name: cleanName,
+          price: prod.price,
+          oldPrice: prod.oldPrice || null,
+          rating: prod.rating,
+          reviewCount: prod.reviews,
+          image: prod.image,
+          isSale: prod.isSale || false,
+          isNew: prod.isNew || false,
+          description: cleanDesc,
+          categoryId: newCat.id,
+          stock: 100
         }
       });
     }
