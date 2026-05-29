@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Search, Loader2, X } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
+import { API_URL } from '../../config';
 
 interface Category {
   id: string;
@@ -25,7 +26,7 @@ export const Categories: React.FC = () => {
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/products/categories');
+      const response = await fetch(`${API_URL}/api/products/categories`);
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -56,8 +57,8 @@ export const Categories: React.FC = () => {
     setIsSaving(true);
     try {
       const url = editingCategory 
-        ? `http://localhost:5000/api/products/categories/${editingCategory.id}`
-        : `http://localhost:5000/api/products/categories`;
+        ? `${API_URL}/api/products/categories/${editingCategory.id}`
+        : `${API_URL}/api/products/categories`;
         
       const method = editingCategory ? 'PUT' : 'POST';
 
@@ -89,7 +90,7 @@ export const Categories: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this category?')) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/api/products/categories/${id}`, {
+      const response = await fetch(`${API_URL}/api/products/categories/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

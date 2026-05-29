@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Plus, Edit2, Trash2, Search, Loader2, X } from 'lucide-react';
+import { API_URL } from '../../config';
 
 interface Category {
   id: string;
@@ -60,7 +61,7 @@ export default function AdminProducts() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products/categories');
+      const response = await fetch(`${API_URL}/api/products/categories`);
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -71,8 +72,8 @@ export default function AdminProducts() {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      // Fetch ALL products (or up to 5000) so super admin can see everything
-      let url = `http://localhost:5000/api/products?limit=5000`;
+      // Fetch ALL products (or up to 5000) so admin can see everything
+      let url = `${API_URL}/api/products?limit=5000`;
       if (searchTerm) url += `&search=${searchTerm}`;
       if (selectedCategory) url += `&category=${categories.find(c => c.id === selectedCategory)?.name || ''}`;
       
@@ -95,7 +96,7 @@ export default function AdminProducts() {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const response = await fetch(`${API_URL}/api/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -154,8 +155,8 @@ export default function AdminProducts() {
 
     try {
       const url = editingProduct 
-        ? `http://localhost:5000/api/products/${editingProduct.id}`
-        : `http://localhost:5000/api/products`;
+        ? `${API_URL}/api/products/${editingProduct.id}`
+        : `${API_URL}/api/products`;
         
       const method = editingProduct ? 'PUT' : 'POST';
 

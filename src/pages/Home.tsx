@@ -3,6 +3,7 @@ import CategoryGrid from '../components/CategoryGrid';
 import ProductSection from '../components/ProductSection';
 import Features from '../components/Features';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../config';
 
 interface Product {
   id: string;
@@ -25,7 +26,7 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/products?limit=20');
+        const res = await fetch(`${API_URL}/api/products?limit=20`);
         const data = await res.json();
         setProducts(data);
       } catch (error) {

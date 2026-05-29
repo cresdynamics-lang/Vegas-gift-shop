@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { API_URL } from '../../config';
 
 interface Customer {
   id: string;
@@ -25,7 +26,7 @@ export const Customers: React.FC = () => {
   const fetchCustomers = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/admin/customers', {
+      const response = await fetch(`${API_URL}/api/admin/customers`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

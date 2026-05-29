@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Heart, Share2, ShieldCheck, Truck, RotateCcw, Star, Check, ArrowLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 
 interface Product {
   id: string;
@@ -29,7 +30,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${id}`);
+        const response = await fetch(`${API_URL}/api/products/${id}`);
         if (!response.ok) throw new Error('Product not found');
         const data = await response.json();
         setProduct(data);

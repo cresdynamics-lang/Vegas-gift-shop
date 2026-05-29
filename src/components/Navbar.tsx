@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import CartDrawer from './CartDrawer';
 import { motion, AnimatePresence } from 'framer-motion';
+import { API_URL } from '../config';
 
 interface Category {
   id: string;
@@ -22,7 +23,7 @@ const Navbar = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/products/categories');
+        const response = await fetch(`${API_URL}/api/products/categories`);
         const data = await response.json();
         const transformedCategories = data.map((c: any) => ({
           ...c,

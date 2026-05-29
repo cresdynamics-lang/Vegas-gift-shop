@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Package, Tags, ShoppingCart, Users, TrendingUp, DollarSign, Activity, ArrowUpRight } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
+import { API_URL } from '../../config';
 
 export default function AdminDashboard() {
   const { token, user } = useAuthStore();
@@ -14,7 +15,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/stats', {
+        const response = await fetch(`${API_URL}/api/admin/stats`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -45,7 +46,7 @@ export default function AdminDashboard() {
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-red-600 rounded-full blur-[80px] opacity-20" />
         <div className="relative z-10">
           <h1 className="text-3xl sm:text-4xl font-serif font-bold mb-2">
-            Welcome back, {user?.name?.split(' ')[0] || 'Super Admin'}
+            Welcome back, {user?.name?.split(' ')[0] || 'Admin'}
           </h1>
           <p className="text-gray-400 max-w-xl text-sm sm:text-base">
             Here's what's happening with your store today. You have full access to manage products, orders, and customer data.

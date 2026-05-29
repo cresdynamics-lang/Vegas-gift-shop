@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import ProductSection from '../components/ProductSection';
 import { Filter, X, ChevronDown, Search, Loader2 } from 'lucide-react';
+import { API_URL } from '../config';
 
 interface Product {
   id: string;
@@ -44,8 +45,8 @@ const Shop = () => {
       setIsLoading(true);
       try {
         const [productsRes, categoriesRes] = await Promise.all([
-          fetch('http://localhost:5000/api/products?limit=1000'),
-          fetch('http://localhost:5000/api/products/categories')
+          fetch(`${API_URL}/api/products?limit=1000`),
+          fetch(`${API_URL}/api/products/categories`)
         ]);
         
         const productsData = await productsRes.json();

@@ -31,7 +31,7 @@ export const Staff: React.FC = () => {
             </TableHeader>
             <TableBody>
               {[
-                { name: 'Admin User', email: 'admin@vegasgifts.co.ke', role: 'Super Admin', status: 'Active', lastActive: 'Now' },
+                { name: 'Admin User', email: 'admin@vegasgifts.co.ke', role: 'Admin', status: 'Active', lastActive: 'Now' },
                 { name: 'Sarah Manager', email: 'sarah@vegasgifts.co.ke', role: 'Manager', status: 'Active', lastActive: '10 mins ago' },
                 { name: 'John Sales', email: 'john@vegasgifts.co.ke', role: 'Sales', status: 'Offline', lastActive: '2 days ago' },
               ].map((staff, idx) => (
@@ -49,7 +49,7 @@ export const Staff: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Shield size={14} className={staff.role === 'Super Admin' ? 'text-brand-crimson' : 'text-brand-gold'} />
+                      <Shield size={14} className={staff.role === 'Admin' ? 'text-brand-crimson' : 'text-brand-gold'} />
                       <span className="text-xs font-medium text-brand-text-muted">{staff.role}</span>
                     </div>
                   </TableCell>
