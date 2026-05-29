@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Package, Tags, ShoppingCart, Users, TrendingUp, DollarSign } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function AdminDashboard() {
+  const { token } = useAuthStore();
   const [stats, setStats] = useState({
     products: 0,
     categories: 0,
@@ -10,31 +12,24 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    // In a real app, this would fetch from an API endpoint
-    // For now, we'll fetch products and categories to get counts
     const fetchStats = async () => {
       try {
-        const [productsRes, categoriesRes] = await Promise.all([
-          fetch('http://localhost:5000/api/products?limit=1'),
-          fetch('http://localhost:5000/api/products/categories')
-        ]);
-        
-        // We'd need a proper count endpoint, but this is a placeholder
-        const categories = await categoriesRes.json();
-        
-        setStats({
-          products: 1815, // Hardcoded for now based on our seed
-          categories: categories.length,
-          orders: 12,
-          revenue: 45000
+        const response = await fetch('http://localhost:5000/api/admin/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
       } catch (error) {
         console.error('Failed to fetch stats', error);
       }
     };
 
     fetchStats();
-  }, []);
+  }, [token]);
 
   const statCards = [
     { name: 'Total Products', value: stats.products, icon: Package, color: 'bg-blue-500' },

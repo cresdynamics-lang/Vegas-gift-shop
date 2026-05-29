@@ -56,6 +56,42 @@ export const getCategories = async (req: Request, res: Response) => {
   }
 };
 
+export const createCategory = async (req: Request, res: Response) => {
+  try {
+    const { name, icon } = req.body;
+    const category = await prisma.category.create({
+      data: { name, icon }
+    });
+    res.status(201).json(category);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+};
+
+export const updateCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, icon } = req.body;
+    const category = await prisma.category.update({
+      where: { id },
+      data: { name, icon }
+    });
+    res.json(category);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+};
+
+export const deleteCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.category.delete({ where: { id } });
+    res.json({ success: true, message: 'Category deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+};
+
 export const createProduct = async (req: Request, res: Response) => {
   try {
     const { name, description, price, oldPrice, image, categoryId, isSale, isNew, stock } = req.body;

@@ -54,16 +54,56 @@ export const Categories: React.FC = () => {
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    // Note: You would need to implement POST/PUT /api/products/categories in the backend
-    // For now, we'll just show an alert since we haven't built the backend endpoints for categories yet
-    alert('Category saving would happen here. Backend endpoints need to be implemented.');
-    setIsSaving(false);
-    handleCloseModal();
+    try {
+      const url = editingCategory 
+        ? `http://localhost:5000/api/products/categories/${editingCategory.id}`
+        : `http://localhost:5000/api/products/categories`;
+        
+      const method = editingCategory ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        fetchCategories(); // Refresh list
+        handleCloseModal();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to save category');
+      }
+    } catch (error) {
+      console.error('Error saving category', error);
+      alert('An error occurred while saving.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this category?')) return;
-    alert('Category deletion would happen here. Backend endpoints need to be implemented.');
+    
+    try {
+      const response = await fetch(`http://localhost:5000/api/products/categories/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setCategories(categories.filter(c => c.id !== id));
+      } else {
+        alert('Failed to delete category');
+      }
+    } catch (error) {
+      console.error('Error deleting category', error);
+    }
   };
 
   return (

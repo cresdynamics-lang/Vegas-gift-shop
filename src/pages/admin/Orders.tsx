@@ -1,53 +1,49 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Truck, 
-  Package, 
-  CheckCircle2, 
-  Clock,
-  ArrowUpRight
-} from 'lucide-react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle,
-  CardDescription
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import React, { useEffect, useState } from 'react';
+import { Eye, Loader2, Download, Clock, Truck, CheckCircle2 } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 
-const orders = [
-  { id: 'VG-7234', customer: 'John Smith', email: 'john@example.com', date: 'May 12, 2026', total: 'KES 8,500', status: 'Delivered', items: 2 },
-  { id: 'VG-7233', customer: 'Sarah Wilson', email: 'sarah@example.com', date: 'May 12, 2026', total: 'KES 24,000', status: 'Processing', items: 4 },
-  { id: 'VG-7232', customer: 'Michael Brown', email: 'mike@example.com', date: 'May 11, 2026', total: 'KES 120,000', status: 'Shipped', items: 1 },
-  { id: 'VG-7231', customer: 'Emily Davis', email: 'emily@example.com', date: 'May 11, 2026', total: 'KES 15,000', status: 'Cancelled', items: 3 },
-  { id: 'VG-7230', customer: 'David Miller', email: 'david@example.com', date: 'May 10, 2026', total: 'KES 45,000', status: 'Delivered', items: 2 },
-  { id: 'VG-7229', customer: 'Linda Johnson', email: 'linda@example.com', date: 'May 10, 2026', total: 'KES 12,500', status: 'Processing', items: 1 },
-];
-
-const statusStyles = {
-  Delivered: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-  Processing: 'bg-amber-50 text-amber-600 border-amber-100',
-  Shipped: 'bg-blue-50 text-blue-600 border-blue-100',
-  Cancelled: 'bg-rose-50 text-rose-600 border-rose-100',
-};
+interface Order {
+  id: string;
+  total: number;
+  status: string;
+  createdAt: string;
+  user: { name: string; email: string };
+  items: any[];
+}
 
 export const Orders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { token } = useAuthStore();
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/admin/orders', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setOrders(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-serif font-bold text-brand-charcoal">Orders Management</h1>
@@ -61,7 +57,6 @@ export const Orders: React.FC = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-card rounded-[32px] bg-brand-charcoal text-white">
           <CardContent className="p-8">
@@ -71,7 +66,7 @@ export const Orders: React.FC = () => {
               </div>
               <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Pending</span>
             </div>
-            <h3 className="text-3xl font-serif font-bold">12 Orders</h3>
+            <h3 className="text-3xl font-serif font-bold">{orders.filter(o => o.status === 'PENDING').length} Orders</h3>
             <p className="text-brand-stone-dark text-xs mt-1">Awaiting processing</p>
           </CardContent>
         </Card>
@@ -81,10 +76,10 @@ export const Orders: React.FC = () => {
               <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
                 <Truck size={24} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-brand-text-hint">In Transit</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-brand-text-hint">Processing</span>
             </div>
-            <h3 className="text-3xl font-serif font-bold text-brand-charcoal">8 Orders</h3>
-            <p className="text-brand-text-muted text-xs mt-1">On the way to customers</p>
+            <h3 className="text-3xl font-serif font-bold text-brand-charcoal">{orders.filter(o => o.status === 'PROCESSING').length} Orders</h3>
+            <p className="text-brand-text-muted text-xs mt-1">Being prepared</p>
           </CardContent>
         </Card>
         <Card className="border-none shadow-card rounded-[32px]">
@@ -95,27 +90,15 @@ export const Orders: React.FC = () => {
               </div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-brand-text-hint">Completed</span>
             </div>
-            <h3 className="text-3xl font-serif font-bold text-brand-charcoal">145 Orders</h3>
-            <p className="text-brand-text-muted text-xs mt-1">Delivered successfully this month</p>
+            <h3 className="text-3xl font-serif font-bold text-brand-charcoal">{orders.filter(o => o.status === 'DELIVERED').length} Orders</h3>
+            <p className="text-brand-text-muted text-xs mt-1">Delivered successfully</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Orders Table */}
       <Card className="border-none shadow-card rounded-[32px] overflow-hidden">
         <CardHeader className="p-8 pb-0 flex flex-row items-center justify-between space-y-0">
-          <div>
-            <CardTitle className="text-xl font-serif">All Orders</CardTitle>
-            <CardDescription>Manage your sales pipeline.</CardDescription>
-          </div>
-          <div className="relative w-64 hidden sm:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text-hint" size={16} />
-            <input 
-              type="text" 
-              placeholder="Filter orders..." 
-              className="w-full bg-brand-warm-white border border-brand-stone rounded-xl pl-10 pr-4 py-2 text-xs focus:outline-none"
-            />
-          </div>
+          <CardTitle className="text-xl font-serif">Recent Orders</CardTitle>
         </CardHeader>
         <CardContent className="p-8">
           <Table>
@@ -126,34 +109,43 @@ export const Orders: React.FC = () => {
                 <TableHead className="text-brand-text-muted font-bold uppercase tracking-wider text-[10px]">Date</TableHead>
                 <TableHead className="text-brand-text-muted font-bold uppercase tracking-wider text-[10px]">Total</TableHead>
                 <TableHead className="text-brand-text-muted font-bold uppercase tracking-wider text-[10px]">Status</TableHead>
-                <TableHead className="text-brand-text-muted font-bold uppercase tracking-wider text-[10px] text-right">Action</TableHead>
+                <TableHead className="text-brand-text-muted font-bold uppercase tracking-wider text-[10px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id} className="border-brand-stone/20 hover:bg-brand-stone/5 transition-colors group">
-                  <TableCell className="font-mono text-xs font-bold text-brand-gold">{order.id}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-brand-charcoal text-sm">{order.customer}</span>
-                      <span className="text-[10px] text-brand-text-hint">{order.email}</span>
-                    </div>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-brand-text-hint" />
                   </TableCell>
-                  <TableCell className="text-xs font-medium text-brand-text-muted">{order.date}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-brand-charcoal">{order.total}</span>
-                      <span className="text-[10px] text-brand-text-hint">{order.items} items</span>
-                    </div>
+                </TableRow>
+              ) : orders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-12 text-brand-text-muted">
+                    No orders found.
                   </TableCell>
+                </TableRow>
+              ) : orders.map((order) => (
+                <TableRow key={order.id} className="hover:bg-brand-warm-white border-brand-stone/20">
+                  <TableCell className="font-bold text-sm text-brand-charcoal">#{order.id.slice(0, 8)}</TableCell>
                   <TableCell>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusStyles[order.status as keyof typeof statusStyles]}`}>
+                    <div className="text-sm font-bold text-brand-charcoal">{order.user?.name || 'Guest'}</div>
+                    <div className="text-xs text-brand-text-muted">{order.user?.email}</div>
+                  </TableCell>
+                  <TableCell className="text-sm text-brand-charcoal">{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell className="font-bold text-sm text-brand-charcoal">KShs {order.total.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      order.status === 'DELIVERED' ? 'bg-emerald-50 text-emerald-600' :
+                      order.status === 'PROCESSING' ? 'bg-amber-50 text-amber-600' :
+                      'bg-blue-50 text-blue-600'
+                    }`}>
                       {order.status}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" className="rounded-xl hover:bg-brand-gold/10 text-brand-gold font-bold text-[10px] uppercase tracking-widest">
-                      Details <ArrowUpRight className="ml-1" size={12} />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-brand-text-hint hover:text-brand-crimson">
+                      <Eye size={16} />
                     </Button>
                   </TableCell>
                 </TableRow>
