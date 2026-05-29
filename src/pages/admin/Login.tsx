@@ -80,7 +80,7 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 sm:text-sm border-gray-300 rounded-md focus:ring-black focus:border-black py-3 border"
-                  placeholder="admin@vegasgifts.co.ke"
+                  placeholder="Enter your email"
                 />
               </div>
             </div>

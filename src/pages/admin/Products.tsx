@@ -26,6 +26,7 @@ export default function AdminProducts() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const { token } = useAuthStore();
   
   // Modal state
@@ -51,7 +52,7 @@ export default function AdminProducts() {
 
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm]);
+  }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
     fetchCategories();
@@ -71,9 +72,9 @@ export default function AdminProducts() {
     setIsLoading(true);
     try {
       // Fetch ALL products (or up to 5000) so super admin can see everything
-      const url = searchTerm 
-        ? `http://localhost:5000/api/products?search=${searchTerm}&limit=5000`
-        : `http://localhost:5000/api/products?limit=5000`;
+      let url = `http://localhost:5000/api/products?limit=5000`;
+      if (searchTerm) url += `&search=${searchTerm}`;
+      if (selectedCategory) url += `&category=${categories.find(c => c.id === selectedCategory)?.name || ''}`;
       
       const response = await fetch(url);
       const data = await response.json();
@@ -211,13 +212,26 @@ export default function AdminProducts() {
             <input
               type="text"
               className="block w-full pl-11 pr-4 py-3 border-none rounded-2xl leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 sm:text-sm font-medium transition-shadow"
-              placeholder="Search by product name or category..."
+              placeholder="Search by product name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           
-          <div className="hidden sm:flex items-center text-sm text-gray-500 font-medium">
+          <div className="flex-1 max-w-xs ml-4">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="block w-full py-3 pl-4 pr-10 border-none rounded-2xl leading-5 bg-white shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 sm:text-sm font-medium transition-shadow cursor-pointer"
+            >
+              <option value="">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="hidden sm:flex items-center ml-auto text-sm text-gray-500 font-medium">
             Showing {products.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, products.length)} of {products.length}
           </div>
         </div>
