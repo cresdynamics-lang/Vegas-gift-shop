@@ -46,6 +46,9 @@ export default function AdminProducts() {
     isNew: false
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   useEffect(() => {
     fetchProducts();
   }, [searchTerm]);
@@ -67,19 +70,25 @@ export default function AdminProducts() {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
+      // Fetch ALL products (or up to 5000) so super admin can see everything
       const url = searchTerm 
-        ? `http://localhost:5000/api/products?search=${searchTerm}&limit=50`
-        : `http://localhost:5000/api/products?limit=50`;
+        ? `http://localhost:5000/api/products?search=${searchTerm}&limit=5000`
+        : `http://localhost:5000/api/products?limit=5000`;
       
       const response = await fetch(url);
       const data = await response.json();
       setProducts(data);
+      setCurrentPage(1); // Reset page on new fetch
     } catch (error) {
       console.error('Failed to fetch products', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
@@ -174,115 +183,138 @@ export default function AdminProducts() {
   };
 
   return (
-    <div>
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage your store's products, pricing, and inventory.
+          <h1 className="text-3xl font-serif font-bold text-gray-900">Products Inventory</h1>
+          <p className="mt-2 text-sm text-gray-500 font-medium">
+            Manage all {products.length} products in your store's catalog.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div>
           <button
             onClick={() => handleOpenModal()}
-            type="button"
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-black px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 sm:w-auto"
+            className="inline-flex items-center justify-center rounded-2xl bg-black px-6 py-3 text-sm font-bold text-white shadow-lg shadow-black/20 hover:bg-gray-800 hover:shadow-xl hover:-translate-y-0.5 transition-all"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
+            <Plus className="w-5 h-5 mr-2" />
+            Add New Product
           </button>
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg border border-gray-100 mb-6">
-        <div className="p-4 border-b border-gray-100 flex items-center">
+      <div className="bg-white shadow-sm rounded-[32px] border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <div className="relative flex-1 max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-black focus:border-black sm:text-sm"
-              placeholder="Search products..."
+              className="block w-full pl-11 pr-4 py-3 border-none rounded-2xl leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 sm:text-sm font-medium transition-shadow"
+              placeholder="Search by product name or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          
+          <div className="hidden sm:flex items-center text-sm text-gray-500 font-medium">
+            Showing {products.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, products.length)} of {products.length}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-white">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
+                <th scope="col" className="px-8 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  Product Details
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-8 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                   Category
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-8 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                   Price
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-8 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                   Stock
                 </th>
-                <th scope="col" className="relative px-6 py-3">
+                <th scope="col" className="relative px-8 py-5">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+                  <td colSpan={5} className="px-8 py-20 text-center">
+                    <Loader2 className="w-10 h-10 animate-spin mx-auto text-red-500 mb-4" />
+                    <p className="text-gray-500 font-medium text-sm">Loading inventory...</p>
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    No products found.
+                  <td colSpan={5} className="px-8 py-20 text-center">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-8 h-8 text-gray-300" />
+                    </div>
+                    <p className="text-gray-900 font-bold text-lg mb-1">No products found</p>
+                    <p className="text-gray-500 text-sm">Try adjusting your search terms.</p>
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                paginatedProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-8 py-5 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
-                          <img className="h-10 w-10 rounded-md object-cover" src={product.image || 'https://via.placeholder.com/40'} alt="" />
+                        <div className="h-14 w-14 flex-shrink-0 bg-gray-50 rounded-2xl p-2 border border-gray-100">
+                          <img className="h-full w-full object-contain" src={product.image || 'https://via.placeholder.com/40'} alt="" />
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 truncate max-w-xs" title={product.name}>
+                        <div className="ml-5">
+                          <div className="text-sm font-bold text-gray-900 truncate max-w-[250px]" title={product.name}>
                             {product.name}
                           </div>
+                          {product.isSale && (
+                            <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded text-[10px] font-bold bg-red-100 text-red-700 uppercase tracking-wider">
+                              On Sale
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    <td className="px-8 py-5 whitespace-nowrap">
+                      <span className="px-3 py-1 inline-flex text-xs font-bold rounded-full bg-gray-100 text-gray-700">
                         {product.category?.name || 'Uncategorized'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      KShs {product.price.toLocaleString()}
+                    <td className="px-8 py-5 whitespace-nowrap">
+                      <div className="text-sm font-bold text-gray-900">KShs {product.price.toLocaleString()}</div>
+                      {product.oldPrice && (
+                        <div className="text-xs text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</div>
+                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.stock}
+                    <td className="px-8 py-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${product.stock > 10 ? 'bg-emerald-500' : product.stock > 0 ? 'bg-amber-500' : 'bg-red-500'}`} />
+                        <span className="text-sm font-bold text-gray-700">{product.stock} in stock</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
-                        onClick={() => handleOpenModal(product)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(product.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <td className="px-8 py-5 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleOpenModal(product)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                          title="Edit Product"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(product.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -290,6 +322,29 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {!isLoading && totalPages > 1 && (
+          <div className="px-8 py-5 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <span className="text-sm font-medium text-gray-500">
+              Page <span className="font-bold text-gray-900">{currentPage}</span> of <span className="font-bold text-gray-900">{totalPages}</span>
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Product Modal */}
