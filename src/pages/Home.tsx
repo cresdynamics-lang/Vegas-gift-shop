@@ -86,20 +86,20 @@ const Home = () => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
             {flashSaleProducts.map(product => (
-              <Link key={product.id} to={`/product/${product.id}`} className="group border border-gray-100 rounded-lg p-4 hover:shadow-lg transition-all bg-white flex flex-col">
-                <div className="aspect-square overflow-hidden rounded-md mb-4 relative">
+              <Link key={product.id} to={`/product/${product.id}`} className="group border border-gray-100 rounded-lg p-2 sm:p-4 hover:shadow-lg transition-all bg-white flex flex-col">
+                <div className="aspect-square overflow-hidden rounded-md mb-2 sm:mb-4 relative">
                   <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   {product.isSale && (
-                    <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">SPECIAL</span>
+                    <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">SPECIAL</span>
                   )}
                 </div>
-                <h3 className="font-medium text-sm text-gray-800 line-clamp-2 mb-2 group-hover:text-red-600 transition-colors">{product.name}</h3>
-                <div className="flex items-center gap-2 mt-auto">
-                  <span className="font-bold text-red-600">KShs {product.price.toLocaleString()}</span>
+                <h3 className="font-medium text-xs sm:text-sm text-gray-800 line-clamp-2 mb-1 sm:mb-2 group-hover:text-red-600 transition-colors">{product.name}</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-auto">
+                  <span className="font-bold text-red-600 text-sm sm:text-base">KShs {product.price.toLocaleString()}</span>
                   {product.oldPrice && (
-                    <span className="text-sm text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</span>
+                    <span className="text-xs sm:text-sm text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</span>
                   )}
                 </div>
               </Link>
