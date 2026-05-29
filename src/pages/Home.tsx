@@ -1,150 +1,164 @@
-import Hero from '../components/Hero';
 import CategoryGrid from '../components/CategoryGrid';
 import ProductSection from '../components/ProductSection';
 import Features from '../components/Features';
 import { products } from '../data/products';
-import { motion } from 'framer-motion';
-import { Sparkles, Star, Heart, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
   // Get featured products
-  const bestSellers = products.slice(0, 4);
-  const newArrivals = products.filter(p => p.isNew).slice(0, 4);
-  const saleProducts = products.filter(p => p.isSale).slice(0, 4);
+  const featuredProducts = products.slice(0, 8);
+  const bestSellers = products.slice(8, 16);
+  const flashSaleProducts = products.filter(p => p.isSale).slice(0, 4);
 
   return (
-    <main className="bg-brand-warm-white">
-      <Hero />
-      
-      {/* Trust Banner - Horizontal Scrolling/Marquee Style or Static Elite List */}
-      <div className="bg-white border-y border-brand-stone py-10 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center gap-12 lg:justify-between items-center">
-          <div className="flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-brand-warm-white rounded-full flex items-center justify-center border border-brand-stone group-hover:border-brand-gold transition-all">
-              <Sparkles className="text-brand-gold" size={18} />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-charcoal">Elite Quality</span>
-          </div>
-          <div className="flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-brand-warm-white rounded-full flex items-center justify-center border border-brand-stone group-hover:border-brand-gold transition-all">
-              <Star className="text-brand-gold" size={18} />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-charcoal">Custom Engraving</span>
-          </div>
-          <div className="flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-brand-warm-white rounded-full flex items-center justify-center border border-brand-stone group-hover:border-brand-gold transition-all">
-              <Heart className="text-brand-gold" size={18} />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-charcoal">Bespoke Gifting</span>
-          </div>
-          <div className="flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-brand-warm-white rounded-full flex items-center justify-center border border-brand-stone group-hover:border-brand-gold transition-all">
-              <Star className="text-brand-gold" size={18} />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-charcoal">Verified Luxury</span>
-          </div>
+    <main className="bg-white">
+      {/* Categories Section */}
+      <section className="py-8 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-xl font-bold mb-6">Product Categories</h2>
+          <CategoryGrid />
         </div>
-      </div>
+      </section>
 
-      <CategoryGrid />
-
-      {/* Best Sellers */}
+      {/* Featured Categories / Products */}
       <ProductSection 
-        title="Best Selling Treasures" 
-        subtitle="Experience our most sought-after collections, curated for those who settle for nothing less than excellence."
-        products={bestSellers}
-        bgColor="bg-brand-warm-white"
-      />
-
-      {/* New Arrivals */}
-      <ProductSection 
-        title="The New Collection" 
-        subtitle="Be the first to experience our latest acquisitions, where modern aesthetics meet timeless luxury."
-        products={newArrivals}
+        title="Featured Categories" 
+        products={featuredProducts}
         bgColor="bg-white"
       />
 
-      {/* High-Fidelity Call to Action Section */}
-      <section className="py-32 bg-white">
+      {/* Features / Trust Banner */}
+      <Features />
+
+      {/* Flash Sales */}
+      <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="relative rounded-[48px] overflow-hidden bg-brand-charcoal py-24 lg:py-40 px-8 lg:px-24">
-            <div className="absolute inset-0 opacity-20 bg-[url('/src/assets/gifts for women 5.jpg')] bg-cover bg-center" />
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-charcoal via-brand-charcoal/80 to-transparent" />
-            
-            <div className="relative z-10 max-w-2xl">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-              >
-                <span className="inline-block px-5 py-2 bg-brand-gold/20 text-brand-gold rounded-full text-[10px] font-bold uppercase tracking-[0.3em] mb-10 border border-brand-gold/30">
-                  Corporate Concierge
-                </span>
-                <h2 className="text-5xl lg:text-7xl font-bold text-white mb-10 leading-[1.1] tracking-tight">
-                  Prestige Awards & <br />
-                  <span className="text-brand-gold italic font-light">Custom</span> Engraving
-                </h2>
-                <p className="text-white/50 text-xl mb-14 leading-relaxed font-light">
-                  Elevate your corporate identity. We specialize in precision-engraved executive trophies and plaques that honor true achievement.
-                </p>
-                <div className="flex flex-wrap gap-8">
-                  <Link to="/shop?category=Awards & Trophies" className="btn-primary !px-12 !py-6 shadow-2xl shadow-brand-crimson/20">
-                    Explore Awards
-                  </Link>
-                  <Link to="/contact" className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.2em] text-white hover:text-brand-gold transition-colors">
-                    Private Consultation
-                    <ArrowRight size={18} />
-                  </Link>
-                </div>
-              </motion.div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <h2 className="text-2xl font-bold">Exclusive Limited Offers</h2>
+            <div className="flex gap-4 items-center">
+              <div className="flex flex-col items-center">
+                <span className="bg-red-600 text-white font-bold px-3 py-2 rounded">00</span>
+                <span className="text-xs mt-1 font-medium text-gray-500">Days</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="bg-red-600 text-white font-bold px-3 py-2 rounded">00</span>
+                <span className="text-xs mt-1 font-medium text-gray-500">Hours</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="bg-red-600 text-white font-bold px-3 py-2 rounded">00</span>
+                <span className="text-xs mt-1 font-medium text-gray-500">Minutes</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="bg-red-600 text-white font-bold px-3 py-2 rounded">00</span>
+                <span className="text-xs mt-1 font-medium text-gray-500">Seconds</span>
+              </div>
             </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {flashSaleProducts.map(product => (
+              <Link key={product.id} to={`/product/${product.id}`} className="group border border-gray-100 rounded-lg p-4 hover:shadow-lg transition-all bg-white flex flex-col">
+                <div className="aspect-square overflow-hidden rounded-md mb-4 relative">
+                  <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  {product.isSale && (
+                    <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">SPECIAL</span>
+                  )}
+                </div>
+                <h3 className="font-medium text-sm text-gray-800 line-clamp-2 mb-2 group-hover:text-red-600 transition-colors">{product.name}</h3>
+                <div className="flex items-center gap-2 mt-auto">
+                  <span className="font-bold text-red-600">KShs {product.price.toLocaleString()}</span>
+                  {product.oldPrice && (
+                    <span className="text-sm text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</span>
+                  )}
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      <Features />
-
-      {/* Promotional Section */}
+      {/* Best Selling Products */}
       <ProductSection 
-        title="The Boutique Edit" 
-        subtitle="Discover exclusive seasonal offers on selected luxury items from our premium collection."
-        products={saleProducts}
-        bgColor="bg-brand-warm-white"
+        title="Best Selling Treasures" 
+        products={bestSellers}
+        bgColor="bg-white"
       />
 
-      {/* Newsletter Section */}
-      <section className="py-32 bg-white">
-        <div className="max-w-5xl mx-auto px-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="bg-brand-charcoal rounded-[48px] p-12 lg:p-24 text-center relative overflow-hidden"
-          >
-             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-crimson/10 rounded-full blur-[100px] translate-x-1/4 -translate-y-1/4" />
-             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-gold/5 rounded-full blur-[80px] -translate-x-1/4 translate-y-1/4" />
-             
-             <div className="relative z-10">
-                <span className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.5em] mb-8 block">Inner Circle</span>
-                <h2 className="text-4xl lg:text-6xl font-bold text-white mb-8 tracking-tight">Access the Extraordinary</h2>
-                <p className="text-white/40 text-lg mb-16 max-w-xl mx-auto leading-relaxed font-light italic">
-                  "Be the first to experience new collections and exclusive events curated for the discerning few."
-                </p>
-                <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                  <input 
-                    type="email" 
-                    placeholder="Your private email address" 
-                    className="flex-1 px-8 py-5 rounded-2xl bg-white/[0.03] border border-white/10 text-white placeholder:text-white/20 focus:bg-white/[0.08] focus:border-brand-gold/50 outline-none transition-all font-light text-sm"
-                  />
-                  <button className="bg-brand-gold text-brand-charcoal px-10 py-5 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-brand-crimson hover:text-white transition-all transform active:scale-95 shadow-xl shadow-brand-gold/10">
-                    Subscribe
-                  </button>
-                </form>
-             </div>
-          </motion.div>
+      {/* Customer Feedback & Reviews */}
+      <section className="py-16 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-12 text-center">Client Testimonials</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { name: "Eleanor M.", review: "The bespoke engraving on the crystal award was flawless. Truly a masterpiece of craftsmanship." },
+              { name: "David K.", review: "Exceptional white-glove delivery. The presentation of the executive set exceeded all my expectations." },
+              { name: "Sarah W.", review: "Vegas Gift Shop is my go-to for corporate gifting. Their attention to detail is unmatched in Nairobi." }
+            ].map((review, i) => (
+              <div key={i} className="p-6 border border-gray-100 rounded-lg shadow-sm bg-gray-50">
+                <div className="flex text-yellow-400 mb-4 text-lg">
+                  {'★★★★★'}
+                </div>
+                <p className="text-gray-700 italic mb-4 text-sm">"{review.review}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500">
+                    {review.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">{review.name}</p>
+                    <p className="text-xs text-gray-500">Verified Client</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Blogs Post's */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-12">The Luxury Journal</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              "The Art of Corporate Gifting: Making a Lasting Impression",
+              "A Guide to Selecting the Perfect Luxury Watch",
+              "Bespoke Personalization: Why Custom Engraving Matters"
+            ].map((title, i) => (
+              <div key={i} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all border border-gray-100">
+                <div className="h-48 bg-gray-200 relative">
+                  <img src={`/products/product_${i + 14}.jpeg`} className="w-full h-full object-cover" alt="Blog post" />
+                </div>
+                <div className="p-6">
+                  <h3 className="font-bold text-gray-900 mb-4 line-clamp-2 hover:text-red-600 cursor-pointer transition-colors">{title}</h3>
+                  <Link to="#" className="text-red-600 font-bold text-sm hover:underline uppercase tracking-wide">Read More</Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SEO Content Section */}
+      <section className="py-16 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 prose prose-sm max-w-none text-gray-600">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Vegas Gift Shop – Nairobi's Premier Luxury Gifting Destination</h1>
+          <p>
+            Welcome to Vegas Gift Shop, where we transform ordinary moments into extraordinary memories. As Nairobi's leading luxury gift boutique, we specialize in curating an exclusive collection of premium gifts, bespoke awards, and personalized treasures that speak volumes.
+          </p>
+          <p>
+            From high-end corporate executive sets and precision-crafted crystal trophies to elegant jewelry and timeless leather goods, Vegas Gift Shop is the definitive choice for those who refuse to compromise on quality and presentation.
+          </p>
+          
+          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">The Vegas Advantage</h3>
+          <p>At Vegas Gift Shop, we believe that a gift is a reflection of your own standards. Our discerning clientele trusts us because we deliver excellence at every touchpoint:</p>
+          
+          <h4 className="font-bold text-gray-900 mt-4">Unrivaled Corporate & Executive Gifting</h4>
+          <p>Elevate your brand with our premium corporate gifting solutions. We offer branded executive sets, custom-engraved crystal awards, and promotional items that leave a lasting impression on your most valued partners and top-performing employees.</p>
+          
+          <h4 className="font-bold text-gray-900 mt-4">Bespoke Personalization</h4>
+          <p>Make it truly yours. Our artisan engraving and personalization services ensure that whether it's a leather wallet, a luxury timepiece, or a delicate pendant, your gift carries a unique, intimate signature.</p>
+          
+          <h4 className="font-bold text-gray-900 mt-4">White-Glove Delivery Experience</h4>
+          <p>Experience seamless, discreet, and prompt delivery. We offer signature same-day delivery within Nairobi and reliable nationwide shipping across Kenya, ensuring your luxury gift arrives in pristine condition.</p>
         </div>
       </section>
     </main>

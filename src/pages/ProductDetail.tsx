@@ -97,9 +97,9 @@ const ProductDetail = () => {
               <h1 className="text-4xl lg:text-6xl font-bold text-brand-charcoal mb-8 tracking-tight leading-[1.1]">{product.name}</h1>
               
               <div className="flex items-center gap-6 mb-10">
-                <span className="text-4xl font-bold text-brand-charcoal tracking-tighter">Ksh {product.price.toLocaleString()}</span>
+                <span className="text-4xl font-bold text-brand-charcoal tracking-tighter">KShs {product.price.toLocaleString()}</span>
                 {product.oldPrice && (
-                  <span className="text-2xl text-brand-text-hint line-through font-medium opacity-50">Ksh {product.oldPrice.toLocaleString()}</span>
+                  <span className="text-2xl text-brand-text-hint line-through font-medium opacity-50">KShs {product.oldPrice.toLocaleString()}</span>
                 )}
               </div>
 
@@ -123,7 +123,7 @@ const ProductDetail = () => {
               <div className="space-y-4 mb-12 border-y border-brand-stone py-8">
                  <div className="flex items-center gap-4 text-sm text-brand-charcoal font-medium">
                     <Truck size={18} className="text-brand-gold" />
-                    <span>Free shipping on orders above <span className="font-bold">Ksh 10,000</span></span>
+                    <span>Free shipping on orders above <span className="font-bold">KShs 10,000</span></span>
                  </div>
                  <div className="flex items-center gap-4 text-sm text-brand-charcoal font-medium">
                     <ShieldCheck size={18} className="text-brand-gold" />

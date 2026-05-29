@@ -21,7 +21,7 @@ import { Settings } from './pages/admin/Settings';
 
 function App() {
   return (
-    <div className="min-h-screen bg-brand-warm-white">
+    <div className="min-h-screen bg-white">
       <Routes>
         {/* Main Site Routes */}
         <Route

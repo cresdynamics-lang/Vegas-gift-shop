@@ -145,7 +145,7 @@ const Checkout = () => {
                       id="standard"
                       title="Premium Delivery"
                       description="Nairobi & Metropolitan Area"
-                      price="Ksh 500"
+                      price="KShs 500"
                       active={formData.shippingMethod === 'standard'}
                       onSelect={() => setFormData({...formData, shippingMethod: 'standard'})}
                     />
@@ -153,7 +153,7 @@ const Checkout = () => {
                       id="express"
                       title="VIP Express Delivery"
                       description="Guaranteed within 3 hours (Nairobi Central)"
-                      price="Ksh 1,500"
+                      price="KShs 1,500"
                       active={formData.shippingMethod === 'express'}
                       onSelect={() => setFormData({...formData, shippingMethod: 'express'})}
                     />
@@ -161,7 +161,7 @@ const Checkout = () => {
                       id="country"
                       title="Nationwide Luxury Courier"
                       description="Major towns across Kenya (1-2 days)"
-                      price="Ksh 850"
+                      price="KShs 850"
                       active={formData.shippingMethod === 'country'}
                       onSelect={() => setFormData({...formData, shippingMethod: 'country'})}
                     />
@@ -292,7 +292,7 @@ const Checkout = () => {
                         <p className="font-bold text-sm truncate">{item.name}</p>
                         <p className="text-[10px] text-white/50 uppercase tracking-widest mt-0.5">Qty: {item.quantity}</p>
                       </div>
-                      <p className="font-bold text-sm whitespace-nowrap">Ksh {(item.price * item.quantity).toLocaleString()}</p>
+                      <p className="font-bold text-sm whitespace-nowrap">KShs {(item.price * item.quantity).toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
@@ -300,11 +300,11 @@ const Checkout = () => {
                 <div className="space-y-4 pt-8 border-t border-white/10">
                   <div className="flex justify-between text-white/60 text-xs">
                     <span>Subtotal</span>
-                    <span className="font-bold">Ksh {total.toLocaleString()}</span>
+                    <span className="font-bold">KShs {total.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-white/60 text-xs">
                     <span>Shipping</span>
-                    <span className="font-bold">Ksh {formData.shippingMethod === 'standard' ? '500' : formData.shippingMethod === 'express' ? '1,500' : '850'}</span>
+                    <span className="font-bold">KShs {formData.shippingMethod === 'standard' ? '500' : formData.shippingMethod === 'express' ? '1,500' : '850'}</span>
                   </div>
                   <div className="flex justify-between text-white/60 text-xs">
                     <span>V.A.T (16%)</span>
@@ -312,7 +312,7 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between text-xl font-bold text-white pt-4 border-t border-white/10">
                     <span className="tracking-tight">Grand Total</span>
-                    <span className="text-brand-gold">Ksh {(total + (formData.shippingMethod === 'standard' ? 500 : formData.shippingMethod === 'express' ? 1500 : 850)).toLocaleString()}</span>
+                    <span className="text-brand-gold">KShs {(total + (formData.shippingMethod === 'standard' ? 500 : formData.shippingMethod === 'express' ? 1500 : 850)).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

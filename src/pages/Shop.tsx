@@ -8,8 +8,10 @@ import { Filter, X, ChevronDown, Search } from 'lucide-react';
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
+  const subcategoryParam = searchParams.get('subcategory');
   
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || 'All');
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(subcategoryParam);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -21,26 +23,53 @@ const Shop = () => {
     } else {
       setSelectedCategory('All');
     }
-  }, [categoryParam]);
+    setSelectedSubcategory(subcategoryParam);
+  }, [categoryParam, subcategoryParam]);
 
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
+    setSelectedSubcategory(null);
     if (cat === 'All') {
       searchParams.delete('category');
     } else {
       searchParams.set('category', cat);
     }
+    searchParams.delete('subcategory');
+    setSearchParams(searchParams);
+  };
+
+  const handleSubcategoryChange = (cat: string, sub: string) => {
+    setSelectedCategory(cat);
+    setSelectedSubcategory(sub);
+    searchParams.set('category', cat);
+    searchParams.set('subcategory', sub);
     setSearchParams(searchParams);
   };
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+      let matchesCategory = false;
+      
+      if (selectedCategory === 'All') {
+        matchesCategory = true;
+      } else if (selectedSubcategory) {
+        matchesCategory = product.category === selectedSubcategory;
+      } else {
+        // If only top-level category is selected, match the category itself OR any of its subcategories
+        const categoryObj = categories.find(c => c.name === selectedCategory);
+        if (categoryObj) {
+          matchesCategory = product.category === selectedCategory || 
+                           categoryObj.subcategories.includes(product.category);
+        } else {
+          matchesCategory = product.category === selectedCategory;
+        }
+      }
+
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            product.category.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, selectedSubcategory, searchQuery]);
 
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
@@ -81,13 +110,27 @@ const Shop = () => {
                   </button>
                 </li>
                 {categories.map(cat => (
-                  <li key={cat.id}>
+                  <li key={cat.id} className="flex flex-col gap-2">
                     <button 
                       onClick={() => handleCategoryChange(cat.name)}
-                      className={`text-sm font-bold transition-colors text-left ${selectedCategory === cat.name ? 'text-brand-crimson' : 'text-brand-charcoal hover:text-brand-crimson'}`}
+                      className={`text-sm font-bold transition-colors text-left ${selectedCategory === cat.name && !selectedSubcategory ? 'text-brand-crimson' : 'text-brand-charcoal hover:text-brand-crimson'}`}
                     >
                       {cat.name}
                     </button>
+                    {selectedCategory === cat.name && cat.subcategories.length > 0 && (
+                      <ul className="pl-4 border-l-2 border-brand-stone/30 space-y-2 mt-1">
+                        {cat.subcategories.map(sub => (
+                          <li key={sub}>
+                            <button 
+                              onClick={() => handleSubcategoryChange(cat.name, sub)}
+                              className={`text-xs transition-colors text-left ${selectedSubcategory === sub ? 'text-brand-crimson font-bold' : 'text-brand-text-muted hover:text-brand-crimson'}`}
+                            >
+                              {sub}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -96,7 +139,7 @@ const Shop = () => {
             <div>
               <h3 className="text-[11px] font-bold uppercase tracking-widest text-brand-gold mb-6">Price Range</h3>
               <div className="space-y-3">
-                {['Under Ksh 2,000', 'Ksh 2,000 - 5,000', 'Ksh 5,000 - 10,000', 'Over Ksh 10,000'].map(range => (
+                {['Under KShs 2,000', 'KShs 2,000 - 5,000', 'KShs 5,000 - 10,000', 'Over KShs 10,000'].map(range => (
                   <label key={range} className="flex items-center gap-3 cursor-pointer group">
                     <div className="w-4 h-4 border-2 border-brand-stone rounded group-hover:border-brand-crimson transition-colors" />
                     <span className="text-xs font-bold text-brand-charcoal uppercase tracking-widest">{range}</span>
@@ -207,13 +250,27 @@ const Shop = () => {
                       All Collections
                     </button>
                     {categories.map(cat => (
-                      <button 
-                        key={cat.id}
-                        onClick={() => { handleCategoryChange(cat.name); setIsMobileFilterOpen(false); }}
-                        className={`text-sm font-bold text-left ${selectedCategory === cat.name ? 'text-brand-crimson' : 'text-brand-charcoal'}`}
-                      >
-                        {cat.name}
-                      </button>
+                      <div key={cat.id} className="flex flex-col gap-2">
+                        <button 
+                          onClick={() => { handleCategoryChange(cat.name); setIsMobileFilterOpen(false); }}
+                          className={`text-sm font-bold text-left ${selectedCategory === cat.name && !selectedSubcategory ? 'text-brand-crimson' : 'text-brand-charcoal'}`}
+                        >
+                          {cat.name}
+                        </button>
+                        {selectedCategory === cat.name && cat.subcategories.length > 0 && (
+                          <div className="flex flex-col pl-4 border-l-2 border-brand-stone/30 gap-2 mt-1">
+                            {cat.subcategories.map(sub => (
+                              <button 
+                                key={sub}
+                                onClick={() => { handleSubcategoryChange(cat.name, sub); setIsMobileFilterOpen(false); }}
+                                className={`text-xs text-left ${selectedSubcategory === sub ? 'text-brand-crimson font-bold' : 'text-brand-text-muted'}`}
+                              >
+                                {sub}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
