@@ -7,9 +7,10 @@ import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
 
-import { AdminLayout } from './pages/admin/AdminLayout';
-import { Dashboard } from './pages/admin/Dashboard';
-import { Products } from './pages/admin/Products';
+import AdminLayout from './layouts/AdminLayout';
+import AdminLogin from './pages/admin/Login';
+import Dashboard from './pages/admin/Dashboard';
+import Products from './pages/admin/Products';
 import { Orders } from './pages/admin/Orders';
 import { Customers } from './pages/admin/Customers';
 import { Categories } from './pages/admin/Categories';
@@ -44,6 +45,7 @@ function App() {
         />
 
         {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="products" element={<Products />} />

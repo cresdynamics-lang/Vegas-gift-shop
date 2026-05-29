@@ -1,5 +1,6 @@
 import prisma from "./lib/prisma";
 import { products, categories } from "./data/products";
+import bcrypt from "bcryptjs";
 
 async function main() {
   console.log('Seeding categories...');
@@ -95,13 +96,16 @@ async function main() {
   }
 
   console.log('Seeding admin user...');
+  const hashedPassword = await bcrypt.hash('admin_password_2026', 10);
   await prisma.user.upsert({
     where: { email: 'admin@vegasgifts.co.ke' },
-    update: {},
+    update: {
+      password: hashedPassword
+    },
     create: {
       email: 'admin@vegasgifts.co.ke',
-      password: 'admin_password_2026', // In a real app, this would be hashed
-      name: 'Vegas Admin',
+      password: hashedPassword,
+      name: 'Staff Admin',
       role: 'SUPER_ADMIN'
     }
   });

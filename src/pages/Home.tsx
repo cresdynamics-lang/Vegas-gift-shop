@@ -1,10 +1,42 @@
+import { useState, useEffect } from 'react';
 import CategoryGrid from '../components/CategoryGrid';
 import ProductSection from '../components/ProductSection';
 import Features from '../components/Features';
-import { products } from '../data/products';
 import { Link } from 'react-router-dom';
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  image: string;
+  isNew?: boolean;
+  isSale?: boolean;
+  rating: number;
+  reviews: number;
+  category: string;
+  description: string;
+}
+
 const Home = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/products?limit=20');
+        const data = await res.json();
+        setProducts(data);
+      } catch (error) {
+        console.error('Failed to fetch products', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   // Get featured products
   const featuredProducts = products.slice(0, 8);
   const bestSellers = products.slice(8, 16);
@@ -23,7 +55,7 @@ const Home = () => {
       {/* Featured Categories / Products */}
       <ProductSection 
         title="Featured Categories" 
-        products={featuredProducts}
+        products={featuredProducts as any}
         bgColor="bg-white"
       />
 
@@ -79,7 +111,7 @@ const Home = () => {
       {/* Best Selling Products */}
       <ProductSection 
         title="Best Selling Treasures" 
-        products={bestSellers}
+        products={bestSellers as any}
         bgColor="bg-white"
       />
 

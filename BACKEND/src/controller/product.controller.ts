@@ -55,3 +55,61 @@ export const getCategories = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch categories' });
   }
 };
+
+export const createProduct = async (req: Request, res: Response) => {
+  try {
+    const { name, description, price, oldPrice, image, categoryId, isSale, isNew, stock } = req.body;
+    const product = await prisma.product.create({
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        oldPrice: oldPrice ? parseFloat(oldPrice) : null,
+        image,
+        categoryId,
+        isSale: Boolean(isSale),
+        isNew: Boolean(isNew),
+        stock: parseInt(stock) || 0
+      }
+    });
+    res.status(201).json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+};
+
+export const updateProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, description, price, oldPrice, image, categoryId, isSale, isNew, stock } = req.body;
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        oldPrice: oldPrice ? parseFloat(oldPrice) : null,
+        image,
+        categoryId,
+        isSale: Boolean(isSale),
+        isNew: Boolean(isNew),
+        stock: parseInt(stock) || 0
+      }
+    });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+};
+
+export const deleteProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.product.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: 'Product deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+};

@@ -1,10 +1,15 @@
 import { Search, ShoppingCart, User, Menu, X, Phone, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import CartDrawer from './CartDrawer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { categories } from '../data/products';
+
+interface Category {
+  id: string;
+  name: string;
+  subcategories: string[];
+}
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,6 +17,24 @@ const Navbar = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const { items, getTotal } = useCartStore();
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/products/categories');
+        const data = await response.json();
+        const transformedCategories = data.map((c: any) => ({
+          ...c,
+          subcategories: []
+        }));
+        setCategories(transformedCategories);
+      } catch (error) {
+        console.error('Failed to fetch categories', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <header className="w-full relative z-[60] bg-white border-b border-gray-100 shadow-sm">

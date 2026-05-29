@@ -5,6 +5,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 
 import productRoutes from "./routes/product.routes";
+import authRoutes from "./routes/auth.routes";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 
+app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 
 app.get("/", (_req, res) => {

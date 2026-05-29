@@ -1,9 +1,28 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
-import { products, categories } from '../data/products';
 import ProductSection from '../components/ProductSection';
-import { Filter, X, ChevronDown, Search } from 'lucide-react';
+import { Filter, X, ChevronDown, Search, Loader2 } from 'lucide-react';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  image: string;
+  category: { name: string };
+  isNew?: boolean;
+  isSale?: boolean;
+  rating: number;
+  reviews: number;
+  description: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  subcategories: string[];
+}
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,6 +34,40 @@ const Shop = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch('http://localhost:5000/api/products?limit=1000'),
+          fetch('http://localhost:5000/api/products/categories')
+        ]);
+        
+        const productsData = await productsRes.json();
+        const categoriesData = await categoriesRes.json();
+        
+        // Transform categories to include subcategories (mocked for now since backend doesn't have subcategories yet)
+        const transformedCategories = categoriesData.map((c: any) => ({
+          ...c,
+          subcategories: []
+        }));
+
+        setProducts(productsData);
+        setCategories(transformedCategories);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Sync state with URL param
   useEffect(() => {
@@ -49,27 +102,28 @@ const Shop = () => {
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       let matchesCategory = false;
+      const catName = product.category?.name || '';
       
       if (selectedCategory === 'All') {
         matchesCategory = true;
       } else if (selectedSubcategory) {
-        matchesCategory = product.category === selectedSubcategory;
+        matchesCategory = catName === selectedSubcategory;
       } else {
         // If only top-level category is selected, match the category itself OR any of its subcategories
         const categoryObj = categories.find(c => c.name === selectedCategory);
         if (categoryObj) {
-          matchesCategory = product.category === selectedCategory || 
-                           categoryObj.subcategories.includes(product.category);
+          matchesCategory = catName === selectedCategory || 
+                           categoryObj.subcategories.includes(catName);
         } else {
-          matchesCategory = product.category === selectedCategory;
+          matchesCategory = catName === selectedCategory;
         }
       }
 
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           product.category.toLowerCase().includes(searchQuery.toLowerCase());
+                           catName.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, selectedSubcategory, searchQuery]);
+  }, [products, categories, selectedCategory, selectedSubcategory, searchQuery]);
 
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
@@ -193,7 +247,7 @@ const Shop = () => {
             {sortedProducts.length > 0 ? (
               <ProductSection 
                 title={`${selectedCategory} Collection`}
-                products={sortedProducts} 
+                products={sortedProducts as any} 
                 bgColor="bg-transparent !py-0"
               />
             ) : (

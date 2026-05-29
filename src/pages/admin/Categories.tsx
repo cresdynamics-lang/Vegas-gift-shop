@@ -1,51 +1,168 @@
-import React from 'react';
-import { Store, Plus, Search, MoreVertical, LayoutGrid } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { categories } from '@/data/products';
+import React, { useEffect, useState } from 'react';
+import { Plus, Edit2, Trash2, Search, Loader2, X } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
+
+interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+}
 
 export const Categories: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { token } = useAuthStore();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({ name: '', icon: '' });
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/products/categories');
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch categories', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenModal = (category?: Category) => {
+    if (category) {
+      setEditingCategory(category);
+      setFormData({ name: category.name, icon: category.icon || '' });
+    } else {
+      setEditingCategory(null);
+      setFormData({ name: '', icon: '' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingCategory(null);
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    // Note: You would need to implement POST/PUT /api/products/categories in the backend
+    // For now, we'll just show an alert since we haven't built the backend endpoints for categories yet
+    alert('Category saving would happen here. Backend endpoints need to be implemented.');
+    setIsSaving(false);
+    handleCloseModal();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this category?')) return;
+    alert('Category deletion would happen here. Backend endpoints need to be implemented.');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-brand-charcoal">Categories</h1>
-          <p className="text-brand-text-muted text-xs">Organize your boutique's collections.</p>
+          <h1 className="text-2xl font-serif font-bold text-gray-900">Categories</h1>
+          <p className="text-gray-500 text-sm">Organize your boutique's collections.</p>
         </div>
-        <Button size="sm" className="bg-brand-charcoal rounded-xl text-[10px] uppercase font-bold tracking-widest px-6">
-          <Plus className="mr-2" size={14} /> Add Category
-        </Button>
+        <button 
+          onClick={() => handleOpenModal()}
+          className="inline-flex items-center justify-center rounded-md border border-transparent bg-black px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-800"
+        >
+          <Plus className="mr-2 w-4 h-4" /> Add Category
+        </button>
       </div>
 
-      <Card className="border-none shadow-card rounded-[24px]">
-        <CardContent className="p-6">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-brand-stone/30">
-                <TableHead className="text-[9px] uppercase font-bold tracking-widest">Icon</TableHead>
-                <TableHead className="text-[9px] uppercase font-bold tracking-widest">Name</TableHead>
-                <TableHead className="text-[9px] uppercase font-bold tracking-widest">Subcategories</TableHead>
-                <TableHead className="text-[9px] uppercase font-bold tracking-widest text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((cat) => (
-                <TableRow key={cat.id} className="border-brand-stone/20">
-                  <TableCell className="text-xl">{cat.icon}</TableCell>
-                  <TableCell className="font-bold text-sm text-brand-charcoal">{cat.name}</TableCell>
-                  <TableCell className="text-xs text-brand-text-muted">{cat.subcategories.length} subcategories</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-brand-text-hint">
-                      <MoreVertical size={14} />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+      <div className="bg-white shadow rounded-lg border border-gray-100 mb-6">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icon</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={3} className="px-6 py-12 text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+                  </td>
+                </tr>
+              ) : categories.map((cat) => (
+                <tr key={cat.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-xl">{cat.icon}</td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-sm text-gray-900">{cat.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button onClick={() => handleOpenModal(cat)} className="text-blue-600 hover:text-blue-900 mr-4">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(cat.id)} className="text-red-600 hover:text-red-900">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={handleCloseModal}></div>
+            <div className="relative inline-block w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl sm:my-8">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  {editingCategory ? 'Edit Category' : 'Add New Category'}
+                </h3>
+                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-500">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <form onSubmit={handleSaveCategory} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Category Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm py-2 px-3 border"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Icon (Emoji)</label>
+                  <input
+                    type="text"
+                    value={formData.icon}
+                    onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm py-2 px-3 border"
+                  />
+                </div>
+                <div className="mt-6 flex justify-end gap-3">
+                  <button type="button" onClick={handleCloseModal} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={isSaving} className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md shadow-sm hover:bg-gray-800">
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Category'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
