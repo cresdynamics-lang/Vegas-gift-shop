@@ -22,39 +22,39 @@ const ProductSection = ({ title, products, bgColor = 'bg-white' }: ProductSectio
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {products.map((product) => (
-            <div key={product.id} className="group flex flex-col bg-white border border-gray-100 rounded-lg p-2 sm:p-4 hover:shadow-lg transition-all">
-              <Link to={`/product/${product.id}`} className="relative aspect-square overflow-hidden rounded-md mb-2 sm:mb-4 block">
+            <div key={product.id} className="group flex flex-col bg-white border border-gray-100 rounded-lg p-4 hover:shadow-lg transition-all">
+              <Link to={`/product/${product.id}`} className="relative aspect-square overflow-hidden rounded-md mb-4 block">
                 <img
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 {product.isSale && (
-                  <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+                  <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
                     SALE
                   </span>
                 )}
               </Link>
               
               <Link to={`/product/${product.id}`} className="flex-1">
-                <h3 className="font-medium text-xs sm:text-sm text-gray-800 line-clamp-2 mb-1 sm:mb-2 hover:text-red-600 transition-colors">
+                <h3 className="font-medium text-sm text-gray-800 line-clamp-2 mb-2 hover:text-red-600 transition-colors">
                   {product.name}
                 </h3>
               </Link>
               
               <div className="mt-auto">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2 sm:mb-4">
-                  <span className="font-bold text-red-600 text-sm sm:text-base">KShs {product.price.toLocaleString()}</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="font-bold text-red-600">KShs {product.price.toLocaleString()}</span>
                   {product.oldPrice && (
-                    <span className="text-xs sm:text-sm text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</span>
+                    <span className="text-sm text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</span>
                   )}
                 </div>
                 
                 <button
                   onClick={() => addItem(product)}
-                  className="w-full bg-black text-white py-1.5 sm:py-2 rounded font-bold text-xs sm:text-sm hover:bg-red-600 transition-colors"
+                  className="w-full bg-black text-white py-2 rounded font-bold text-sm hover:bg-red-600 transition-colors"
                 >
                   ADD TO CART
                 </button>

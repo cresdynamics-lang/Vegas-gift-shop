@@ -1,29 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
+import { products, categories } from '../data/products';
 import ProductSection from '../components/ProductSection';
-import { Filter, X, ChevronDown, Search, Loader2 } from 'lucide-react';
-import { API_URL } from '../config';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  category: { name: string };
-  isNew?: boolean;
-  isSale?: boolean;
-  rating: number;
-  reviews: number;
-  description: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  subcategories: string[];
-}
+import { Filter, X, ChevronDown, Search } from 'lucide-react';
+import { productMatchesTarget } from '../data/categoryMatchers';
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,40 +16,6 @@ const Shop = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [productsRes, categoriesRes] = await Promise.all([
-          fetch(`${API_URL}/api/products?limit=1000`),
-          fetch(`${API_URL}/api/products/categories`)
-        ]);
-        
-        const productsData = await productsRes.json();
-        const categoriesData = await categoriesRes.json();
-        
-        // Transform categories to include subcategories (mocked for now since backend doesn't have subcategories yet)
-        const transformedCategories = categoriesData.map((c: any) => ({
-          ...c,
-          subcategories: []
-        }));
-
-        setProducts(productsData);
-        setCategories(transformedCategories);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   // Sync state with URL param
   useEffect(() => {
@@ -101,30 +48,37 @@ const Shop = () => {
   };
 
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+    return products.filter((product) => {
       let matchesCategory = false;
-      const catName = product.category?.name || '';
-      
+
       if (selectedCategory === 'All') {
         matchesCategory = true;
+      } else if (selectedCategory === 'Gifts below 1000') {
+        matchesCategory = product.price < 1000;
       } else if (selectedSubcategory) {
-        matchesCategory = catName === selectedSubcategory;
+        matchesCategory = productMatchesTarget(product, selectedSubcategory);
       } else {
-        // If only top-level category is selected, match the category itself OR any of its subcategories
-        const categoryObj = categories.find(c => c.name === selectedCategory);
+        const categoryObj = categories.find((c) => c.name === selectedCategory);
         if (categoryObj) {
-          matchesCategory = catName === selectedCategory || 
-                           categoryObj.subcategories.includes(catName);
+          matchesCategory =
+            productMatchesTarget(product, selectedCategory) ||
+            categoryObj.subcategories.some((sub) => productMatchesTarget(product, sub));
         } else {
-          matchesCategory = catName === selectedCategory;
+          matchesCategory = productMatchesTarget(product, selectedCategory);
         }
       }
 
-      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           catName.toLowerCase().includes(searchQuery.toLowerCase());
+      const searchTarget = [
+        product.name,
+        product.category,
+        ...(product.categories || []),
+        product.description || '',
+      ].join(' ').toLowerCase();
+
+      const matchesSearch = searchTarget.includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [products, categories, selectedCategory, selectedSubcategory, searchQuery]);
+  }, [selectedCategory, selectedSubcategory, searchQuery]);
 
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
@@ -137,15 +91,29 @@ const Shop = () => {
   return (
     <div className="bg-brand-warm-white min-h-screen">
       {/* Header Section */}
-      <section className="bg-brand-charcoal py-20 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-crimson rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+      <section className="relative py-28 lg:py-36 text-white overflow-hidden min-h-[420px] flex items-center">
+        <div className="absolute inset-0">
+          <img
+            src="/products/product_5.jpeg"
+            alt=""
+            className="w-full h-full object-cover object-center"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
-        <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold mb-6">The Full Collection</h1>
-          <p className="text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
-            Discover our entire range of premium gifts, personalized sets, and corporate awards designed for moments that matter.
-          </p>
+        <div className="max-w-7xl mx-auto px-4 relative z-10 w-full">
+          <div className="max-w-2xl">
+            <span className="inline-block text-red-400 text-xs font-bold tracking-[0.25em] uppercase mb-4">
+              Shop All Gifts
+            </span>
+            <h1 className="text-4xl lg:text-6xl font-sans font-bold mb-5 leading-tight tracking-tight">
+              The Full Collection
+            </h1>
+            <p className="text-white/75 text-lg leading-relaxed font-light max-w-xl">
+              Discover our entire range of premium gifts, personalized sets, and corporate awards designed for moments that matter.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -170,7 +138,7 @@ const Shop = () => {
                       onClick={() => handleCategoryChange(cat.name)}
                       className={`text-sm font-bold transition-colors text-left ${selectedCategory === cat.name && !selectedSubcategory ? 'text-brand-crimson' : 'text-brand-charcoal hover:text-brand-crimson'}`}
                     >
-                      {cat.name}
+                      {cat.navLabel || cat.name}
                     </button>
                     {selectedCategory === cat.name && cat.subcategories.length > 0 && (
                       <ul className="pl-4 border-l-2 border-brand-stone/30 space-y-2 mt-1">
@@ -248,7 +216,7 @@ const Shop = () => {
             {sortedProducts.length > 0 ? (
               <ProductSection 
                 title={`${selectedCategory} Collection`}
-                products={sortedProducts as any} 
+                products={sortedProducts} 
                 bgColor="bg-transparent !py-0"
               />
             ) : (
@@ -310,7 +278,7 @@ const Shop = () => {
                           onClick={() => { handleCategoryChange(cat.name); setIsMobileFilterOpen(false); }}
                           className={`text-sm font-bold text-left ${selectedCategory === cat.name && !selectedSubcategory ? 'text-brand-crimson' : 'text-brand-charcoal'}`}
                         >
-                          {cat.name}
+                          {cat.navLabel || cat.name}
                         </button>
                         {selectedCategory === cat.name && cat.subcategories.length > 0 && (
                           <div className="flex flex-col pl-4 border-l-2 border-brand-stone/30 gap-2 mt-1">

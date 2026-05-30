@@ -7,7 +7,7 @@ Website: https://riogiftshop.com/
 # HEADER SECTION
 
 ## Top Bar
-- Call us on: +254 740 282041
+- Call us on: +254792 943753
 - Same day delivery in Nairobi
 
 ## Search Bar
@@ -372,7 +372,7 @@ Website: https://riogiftshop.com/
 # BUSINESS INFORMATION
 
 ## Contact Details
-- Phone: +254 740 282041
+- Phone: +254792 943753
 - Email: info@riogiftshop.com
 
 ## Physical Address

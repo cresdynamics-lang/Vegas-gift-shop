@@ -1,56 +1,15 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Heart, Share2, ShieldCheck, Truck, RotateCcw, Star, Check, ArrowLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ShoppingCart, Heart, Share2, ShieldCheck, Truck, RotateCcw, Star, Check, ArrowLeft, ChevronRight } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
-import { useState, useEffect } from 'react';
-import { API_URL } from '../config';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  description?: string;
-  category: { name: string };
-  rating: number;
-  reviews: number;
-  features?: string[];
-  isSale?: boolean;
-}
+import { products } from '../data/products';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
   
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/products/${id}`);
-        if (!response.ok) throw new Error('Product not found');
-        const data = await response.json();
-        setProduct(data);
-      } catch (error) {
-        console.error('Failed to fetch product', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-brand-warm-white">
-        <Loader2 className="w-12 h-12 animate-spin text-brand-charcoal" />
-      </div>
-    );
-  }
+  const product = products.find(p => p.id === id);
 
   if (!product) {
     return (
@@ -79,7 +38,7 @@ const ProductDetail = () => {
           <ChevronRight size={10} />
           <Link to="/shop" className="hover:text-brand-crimson transition-colors">Boutique</Link>
           <ChevronRight size={10} />
-          <Link to={`/shop?category=${product.category?.name}`} className="hover:text-brand-crimson transition-colors">{product.category?.name}</Link>
+          <Link to={`/shop?category=${product.category}`} className="hover:text-brand-crimson transition-colors">{product.category}</Link>
           <ChevronRight size={10} />
           <span className="text-brand-charcoal">{product.name}</span>
         </div>
@@ -126,7 +85,7 @@ const ProductDetail = () => {
             <div className="mb-10">
               <div className="flex items-center gap-4 mb-6">
                 <span className="px-4 py-1.5 bg-brand-charcoal text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] rounded-full">
-                  {product.category?.name}
+                  {product.category}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <Star size={14} className="fill-brand-gold text-brand-gold" />

@@ -1,16 +1,15 @@
 import { Search, ShoppingCart, User, Menu, X, Phone, ChevronDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import CartDrawer from './CartDrawer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { API_URL } from '../config';
+import { categories, type Category } from '../data/products';
 
-interface Category {
-  id: string;
-  name: string;
-  subcategories: string[];
-}
+const navItems: Category[] = [
+  ...categories.filter((c) => c.id !== 'wholesale' && c.id !== 'gifts-below-1000'),
+  categories.find((c) => c.id === 'wholesale')!,
+].filter(Boolean);
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,30 +17,60 @@ const Navbar = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const { items, getTotal } = useCartStore();
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const [categories, setCategories] = useState<Category[]>([]);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/products/categories`);
-        const data = await response.json();
-        const transformedCategories = data.map((c: any) => ({
-          ...c,
-          subcategories: []
-        }));
-        setCategories(transformedCategories);
-      } catch (error) {
-        console.error('Failed to fetch categories', error);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const getLabel = (cat: Category) => cat.navLabel || cat.name.replace(' Gifts', '');
+
+  const renderDropdownLinks = (cat: Category) => {
+    if (cat.groups && cat.groups.length > 0) {
+      return (
+        <div className="absolute top-full left-0 bg-white shadow-2xl border border-gray-100 rounded-b-xl z-50 p-6 min-w-[700px] max-w-[900px]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {cat.groups.map((group) => (
+              <div key={group.title}>
+                <h4 className="text-[11px] font-bold uppercase tracking-widest text-red-600 mb-3 border-b border-gray-100 pb-2">
+                  {group.title}
+                </h4>
+                <ul className="space-y-1.5">
+                  {group.items.map((item) => (
+                    <li key={item}>
+                      <Link
+                        to={`/shop?category=${encodeURIComponent(cat.name)}&subcategory=${encodeURIComponent(item)}`}
+                        className="text-sm text-gray-600 hover:text-red-600 hover:pl-1 transition-all block py-0.5"
+                      >
+                        {item}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (cat.subcategories.length > 0) {
+      return (
+        <div className="absolute top-full left-0 w-64 bg-white shadow-xl border border-gray-100 rounded-b-lg overflow-hidden py-2 z-50">
+          {cat.subcategories.map((sub) => (
+            <Link
+              key={sub}
+              to={`/shop?category=${encodeURIComponent(cat.name)}&subcategory=${encodeURIComponent(sub)}`}
+              className="block px-4 py-2 text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+            >
+              {sub}
+            </Link>
+          ))}
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <header className="w-full relative z-[60] bg-white border-b border-gray-100 shadow-sm">
-      {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-black rounded flex items-center justify-center">
             <span className="text-white font-serif font-bold text-xl">V</span>
@@ -54,11 +83,10 @@ const Navbar = () => {
           </div>
         </Link>
 
-        {/* Search Bar (Desktop) */}
         <div className="hidden md:flex flex-1 max-w-2xl mx-8 relative">
-          <input 
-            type="text" 
-            placeholder="Products search..." 
+          <input
+            type="text"
+            placeholder="Products search..."
             className="w-full border-2 border-gray-200 rounded-full py-3 px-6 pr-12 focus:outline-none focus:border-red-600 text-sm"
           />
           <button className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-600">
@@ -66,13 +94,7 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-6">
-          <div className="hidden lg:flex items-center gap-2 text-gray-700">
-            <Phone size={20} className="text-red-600" />
-            <span className="font-bold text-sm">0711 667 733</span>
-          </div>
-          
           <Link to="/account" className="hidden md:flex items-center gap-2 text-gray-700 hover:text-red-600">
             <User size={20} />
             <span className="font-bold text-sm">My Account</span>
@@ -93,70 +115,67 @@ const Navbar = () => {
               </span>
             </div>
           </button>
-          
+
           <button className="lg:hidden text-gray-600 p-1" onClick={() => setIsMenuOpen(true)}>
             <Menu size={28} />
           </button>
         </div>
       </div>
 
-      {/* Desktop Navigation */}
-      <nav className="hidden lg:flex border-t border-gray-100 relative z-50">
-        <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-center gap-4 py-4 flex-wrap">
-          {categories.slice(0, 10).map((category) => (
-            <div 
-              key={category.id} 
-              className="relative group"
+      {/* Desktop Navigation - Rio Gift Shop style */}
+      <nav className="hidden lg:block border-t border-gray-100 relative z-50">
+        <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-center gap-1 py-3 flex-wrap">
+          {navItems.map((category) => (
+            <div
+              key={category.id}
+              className="relative"
               onMouseEnter={() => setActiveDropdown(category.id)}
               onMouseLeave={() => setActiveDropdown(null)}
             >
               <Link
-                to={`/shop?category=${category.name}`}
-                className="flex items-center gap-1 text-xs font-bold text-gray-800 hover:text-red-600 uppercase tracking-wide py-2"
+                to={`/shop?category=${encodeURIComponent(category.name)}`}
+                className="flex items-center gap-1 text-xs font-bold text-gray-800 hover:text-red-600 uppercase tracking-wide py-2 px-2"
               >
-                {category.name.replace(' Gifts', '')}
-                {category.subcategories.length > 0 && (
-                  <ChevronDown size={14} className={`transition-transform ${activeDropdown === category.id ? 'rotate-180 text-red-600' : ''}`} />
+                {getLabel(category)}
+                {(category.groups?.length || category.subcategories.length) > 0 && (
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${activeDropdown === category.id ? 'rotate-180 text-red-600' : ''}`}
+                  />
                 )}
               </Link>
 
-              {/* Dropdown Menu */}
-              {category.subcategories.length > 0 && (
-                <AnimatePresence>
-                  {activeDropdown === category.id && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 w-64 bg-white shadow-xl border border-gray-100 rounded-b-lg overflow-hidden py-2 z-50"
-                    >
-                      {category.subcategories.map((sub, idx) => (
-                        <Link
-                          key={idx}
-                          to={`/shop?category=${category.name}&subcategory=${sub}`}
-                          className="block px-4 py-2 text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        >
-                          {sub}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              )}
+              <AnimatePresence>
+                {activeDropdown === category.id && (category.groups?.length || category.subcategories.length) > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {renderDropdownLinks(category)}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ))}
-          <Link to="/shop?category=Wholesale" className="text-xs font-bold text-gray-800 hover:text-red-600 uppercase tracking-wide py-2">Wholesale</Link>
-          <Link to="/blog" className="text-xs font-bold text-gray-800 hover:text-red-600 uppercase tracking-wide py-2">Blog</Link>
+          <Link
+            to="/shop?category=Gifts%20below%201000"
+            className="text-xs font-bold text-gray-800 hover:text-red-600 uppercase tracking-wide py-2 px-2"
+          >
+            Gifts below 1000
+          </Link>
+          <Link to="/blog" className="text-xs font-bold text-gray-800 hover:text-red-600 uppercase tracking-wide py-2 px-2">
+            Blog
+          </Link>
         </div>
       </nav>
 
-      {/* Mobile Search */}
       <div className="md:hidden px-4 pb-4">
         <div className="relative">
-          <input 
-            type="text" 
-            placeholder="Products search..." 
+          <input
+            type="text"
+            placeholder="Products search..."
             className="w-full border-2 border-gray-200 rounded-full py-2 px-4 pr-10 focus:outline-none focus:border-red-600 text-sm"
           />
           <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -165,7 +184,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -189,46 +208,76 @@ const Navbar = () => {
                 </button>
               </div>
 
-              <div className="flex flex-col overflow-y-auto p-4 gap-2">
-                {categories.slice(0, 10).map((category) => (
+              <div className="flex flex-col overflow-y-auto p-4 gap-1">
+                {navItems.map((category) => (
                   <div key={category.id} className="border-b border-gray-50 pb-2">
-                    <div 
+                    <div
                       className="flex items-center justify-between py-2"
                       onClick={() => setActiveDropdown(activeDropdown === category.id ? null : category.id)}
                     >
                       <Link
-                        to={`/shop?category=${category.name}`}
+                        to={`/shop?category=${encodeURIComponent(category.name)}`}
                         onClick={() => setIsMenuOpen(false)}
                         className="text-sm font-bold text-gray-800 hover:text-red-600 uppercase"
                       >
-                        {category.name.replace(' Gifts', '')}
+                        {getLabel(category)}
                       </Link>
-                      {category.subcategories.length > 0 && (
+                      {(category.groups?.length || category.subcategories.length) > 0 && (
                         <button className="p-1 text-gray-500">
-                          <ChevronDown size={16} className={`transition-transform ${activeDropdown === category.id ? 'rotate-180' : ''}`} />
+                          <ChevronDown
+                            size={16}
+                            className={`transition-transform ${activeDropdown === category.id ? 'rotate-180' : ''}`}
+                          />
                         </button>
                       )}
                     </div>
-                    
-                    {/* Mobile Subcategories */}
-                    {activeDropdown === category.id && category.subcategories.length > 0 && (
-                      <div className="flex flex-col pl-4 gap-2 mt-2 border-l-2 border-red-100">
-                        {category.subcategories.map((sub, idx) => (
-                          <Link
-                            key={idx}
-                            to={`/shop?category=${category.name}&subcategory=${sub}`}
-                            onClick={() => setIsMenuOpen(false)}
-                            className="text-sm text-gray-500 hover:text-red-600 py-1"
-                          >
-                            {sub}
-                          </Link>
-                        ))}
+
+                    {activeDropdown === category.id && (
+                      <div className="pl-3 border-l-2 border-red-100 mt-1 space-y-3">
+                        {category.groups && category.groups.length > 0
+                          ? category.groups.map((group) => (
+                              <div key={group.title}>
+                                <p className="text-[10px] font-bold uppercase text-red-600 mb-1">{group.title}</p>
+                                {group.items.map((sub) => (
+                                  <Link
+                                    key={sub}
+                                    to={`/shop?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(sub)}`}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="block text-sm text-gray-500 hover:text-red-600 py-1"
+                                  >
+                                    {sub}
+                                  </Link>
+                                ))}
+                              </div>
+                            ))
+                          : category.subcategories.map((sub) => (
+                              <Link
+                                key={sub}
+                                to={`/shop?category=${encodeURIComponent(category.name)}&subcategory=${encodeURIComponent(sub)}`}
+                                onClick={() => setIsMenuOpen(false)}
+                                className="block text-sm text-gray-500 hover:text-red-600 py-1"
+                              >
+                                {sub}
+                              </Link>
+                            ))}
                       </div>
                     )}
                   </div>
                 ))}
-                <Link to="/shop?category=Wholesale" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-gray-800 hover:text-red-600 uppercase py-2 border-b border-gray-50">Wholesale</Link>
-                <Link to="/blog" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold text-gray-800 hover:text-red-600 uppercase py-2 border-b border-gray-50">Blog</Link>
+                <Link
+                  to="/shop?category=Gifts%20below%201000"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-sm font-bold text-gray-800 hover:text-red-600 uppercase py-2"
+                >
+                  Gifts below 1000
+                </Link>
+                <Link
+                  to="/blog"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-sm font-bold text-gray-800 hover:text-red-600 uppercase py-2"
+                >
+                  Blog
+                </Link>
               </div>
             </motion.div>
           </>

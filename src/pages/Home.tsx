@@ -1,43 +1,10 @@
-import { useState, useEffect } from 'react';
 import CategoryGrid from '../components/CategoryGrid';
 import ProductSection from '../components/ProductSection';
 import Features from '../components/Features';
+import { products } from '../data/products';
 import { Link } from 'react-router-dom';
-import { API_URL } from '../config';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  isNew?: boolean;
-  isSale?: boolean;
-  rating: number;
-  reviews: number;
-  category: string;
-  description: string;
-}
 
 const Home = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/products?limit=20`);
-        const data = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error('Failed to fetch products', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProducts();
-  }, []);
-
   // Get featured products
   const featuredProducts = products.slice(0, 8);
   const bestSellers = products.slice(8, 16);
@@ -56,7 +23,7 @@ const Home = () => {
       {/* Featured Categories / Products */}
       <ProductSection 
         title="Featured Categories" 
-        products={featuredProducts as any}
+        products={featuredProducts}
         bgColor="bg-white"
       />
 
@@ -87,20 +54,20 @@ const Home = () => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {flashSaleProducts.map(product => (
-              <Link key={product.id} to={`/product/${product.id}`} className="group border border-gray-100 rounded-lg p-2 sm:p-4 hover:shadow-lg transition-all bg-white flex flex-col">
-                <div className="aspect-square overflow-hidden rounded-md mb-2 sm:mb-4 relative">
+              <Link key={product.id} to={`/product/${product.id}`} className="group border border-gray-100 rounded-lg p-4 hover:shadow-lg transition-all bg-white flex flex-col">
+                <div className="aspect-square overflow-hidden rounded-md mb-4 relative">
                   <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   {product.isSale && (
-                    <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">SPECIAL</span>
+                    <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">SPECIAL</span>
                   )}
                 </div>
-                <h3 className="font-medium text-xs sm:text-sm text-gray-800 line-clamp-2 mb-1 sm:mb-2 group-hover:text-red-600 transition-colors">{product.name}</h3>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-auto">
-                  <span className="font-bold text-red-600 text-sm sm:text-base">KShs {product.price.toLocaleString()}</span>
+                <h3 className="font-medium text-sm text-gray-800 line-clamp-2 mb-2 group-hover:text-red-600 transition-colors">{product.name}</h3>
+                <div className="flex items-center gap-2 mt-auto">
+                  <span className="font-bold text-red-600">KShs {product.price.toLocaleString()}</span>
                   {product.oldPrice && (
-                    <span className="text-xs sm:text-sm text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</span>
+                    <span className="text-sm text-gray-400 line-through">KShs {product.oldPrice.toLocaleString()}</span>
                   )}
                 </div>
               </Link>
@@ -112,7 +79,7 @@ const Home = () => {
       {/* Best Selling Products */}
       <ProductSection 
         title="Best Selling Treasures" 
-        products={bestSellers as any}
+        products={bestSellers}
         bgColor="bg-white"
       />
 
@@ -170,28 +137,100 @@ const Home = () => {
         </div>
       </section>
 
-      {/* SEO Content Section */}
-      <section className="py-16 bg-white border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 prose prose-sm max-w-none text-gray-600">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Vegas Gift Shop – Nairobi's Premier Luxury Gifting Destination</h1>
-          <p>
-            Welcome to Vegas Gift Shop, where we transform ordinary moments into extraordinary memories. As Nairobi's leading luxury gift boutique, we specialize in curating an exclusive collection of premium gifts, bespoke awards, and personalized treasures that speak volumes.
-          </p>
-          <p>
-            From high-end corporate executive sets and precision-crafted crystal trophies to elegant jewelry and timeless leather goods, Vegas Gift Shop is the definitive choice for those who refuse to compromise on quality and presentation.
-          </p>
-          
-          <h3 className="text-xl font-bold text-gray-900 mt-8 mb-4">The Vegas Advantage</h3>
-          <p>At Vegas Gift Shop, we believe that a gift is a reflection of your own standards. Our discerning clientele trusts us because we deliver excellence at every touchpoint:</p>
-          
-          <h4 className="font-bold text-gray-900 mt-4">Unrivaled Corporate & Executive Gifting</h4>
-          <p>Elevate your brand with our premium corporate gifting solutions. We offer branded executive sets, custom-engraved crystal awards, and promotional items that leave a lasting impression on your most valued partners and top-performing employees.</p>
-          
-          <h4 className="font-bold text-gray-900 mt-4">Bespoke Personalization</h4>
-          <p>Make it truly yours. Our artisan engraving and personalization services ensure that whether it's a leather wallet, a luxury timepiece, or a delicate pendant, your gift carries a unique, intimate signature.</p>
-          
-          <h4 className="font-bold text-gray-900 mt-4">White-Glove Delivery Experience</h4>
-          <p>Experience seamless, discreet, and prompt delivery. We offer signature same-day delivery within Nairobi and reliable nationwide shipping across Kenya, ensuring your luxury gift arrives in pristine condition.</p>
+      {/* About / SEO — modern editorial layout */}
+      <section className="relative overflow-hidden bg-[#0a0a0a] text-white">
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-600/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 py-20 lg:py-28 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Left — headline */}
+            <div>
+              <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-sans font-semibold leading-[1.1] tracking-tight mb-6">
+                <span className="block text-white/90">Vegas Gift Shop</span>
+                <span className="block mt-2 bg-gradient-to-r from-red-400 via-amber-300 to-red-400 bg-clip-text text-transparent">
+                  Nairobi's Premier Luxury Gifting Destination
+                </span>
+              </h1>
+              <p className="text-lg text-white/60 leading-relaxed max-w-lg font-light">
+                We transform ordinary moments into extraordinary memories — curating premium gifts, bespoke awards, and personalized treasures for every occasion.
+              </p>
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center gap-2 bg-white text-black px-7 py-3.5 rounded-full text-sm font-bold hover:bg-red-500 hover:text-white transition-all"
+                >
+                  Shop Collection
+                </Link>
+                <Link
+                  to="/shop?category=Corporate%20Gifts"
+                  className="inline-flex items-center gap-2 border border-white/30 text-white px-7 py-3.5 rounded-full text-sm font-bold hover:bg-white/10 transition-all"
+                >
+                  Corporate Gifting
+                </Link>
+              </div>
+            </div>
+
+            {/* Right — image mosaic */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="aspect-[4/5] rounded-2xl overflow-hidden ring-1 ring-white/10">
+                  <img src="/products/product_3.jpeg" alt="Awards & trophies" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                </div>
+                <div className="aspect-square rounded-2xl overflow-hidden ring-1 ring-white/10">
+                  <img src="/gifts for women 1.jpg" alt="Luxury gifts" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                </div>
+              </div>
+              <div className="space-y-3 sm:space-y-4 pt-8">
+                <div className="aspect-square rounded-2xl overflow-hidden ring-1 ring-white/10">
+                  <img src="/products/product_16.jpeg" alt="Watches" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                </div>
+                <div className="aspect-[4/5] rounded-2xl overflow-hidden ring-1 ring-white/10">
+                  <img src="/products/product_4.jpeg" alt="Corporate gifts" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats strip */}
+          <div className="mt-16 pt-12 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { value: '1,800+', label: 'Premium Products' },
+              { value: 'Same Day', label: 'Nairobi Delivery' },
+              { value: '100%', label: 'Satisfaction Guarantee' },
+              { value: 'Bespoke', label: 'Personalization' },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <p className="text-2xl sm:text-3xl font-bold text-white mb-1">{stat.value}</p>
+                <p className="text-xs text-white/50 uppercase tracking-widest font-medium">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Three pillars */}
+          <div className="mt-12 grid md:grid-cols-3 gap-6">
+            {[
+              {
+                title: 'Corporate & Executive Gifting',
+                desc: 'Branded executive sets, crystal awards, and promotional items that leave a lasting impression on partners and top performers.',
+              },
+              {
+                title: 'Artisan Personalization',
+                desc: 'Expert engraving on leather, crystal, and jewelry — every piece carries a unique, intimate signature.',
+              },
+              {
+                title: 'White-Glove Delivery',
+                desc: 'Same-day delivery in Nairobi and reliable nationwide shipping. Your gift arrives in pristine condition.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                <h3 className="font-semibold text-white mb-2 text-sm">{item.title}</h3>
+                <p className="text-sm text-white/50 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </main>

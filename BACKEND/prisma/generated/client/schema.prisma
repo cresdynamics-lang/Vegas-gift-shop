@@ -98,3 +98,13 @@ model Review {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model StoreSettings {
+  id            String   @id @default("default")
+  general       Json     @default("{}")
+  payments      Json     @default("{}")
+  shipping      Json     @default("{}")
+  branding      Json     @default("{}")
+  notifications Json     @default("{}")
+  updatedAt     DateTime @updatedAt
+}

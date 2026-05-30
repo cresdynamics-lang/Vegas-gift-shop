@@ -12,8 +12,7 @@ const steps = [
 
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const { items, getTotal, clearCart } = useCartStore();
-  const total = getTotal();
+  const { items, total, clearCart } = useCartStore();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
