@@ -30,6 +30,10 @@ export default function AdminLogin() {
         throw new Error(data.error || 'Login failed');
       }
 
+      if (data.user.role !== 'SUPER_ADMIN' && data.user.role !== 'MANAGER') {
+        throw new Error('This portal is for staff only. Use My Account on the storefront.');
+      }
+
       login(data.user, data.token);
       navigate('/admin/dashboard');
     } catch (err: any) {

@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
+import Account from './pages/Account';
 
 import AdminLayout from './layouts/AdminLayout';
 import AdminLogin from './pages/admin/Login';
@@ -37,6 +38,7 @@ function App() {
                   <Route path="/shop" element={<Shop />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/account" element={<Account />} />
                 </Routes>
               </main>
               <Footer />

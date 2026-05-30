@@ -36,3 +36,15 @@ export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction
 
   next();
 };
+
+export const requireCustomer = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Access denied.' });
+  }
+
+  if (req.user.role !== 'CUSTOMER') {
+    return res.status(403).json({ error: 'Customer account required.' });
+  }
+
+  next();
+};

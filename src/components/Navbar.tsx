@@ -2,6 +2,7 @@ import { Search, ShoppingCart, User, Menu, X, Phone, ChevronDown } from 'lucide-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
+import { useCustomerStore } from '../store/useCustomerStore';
 import CartDrawer from './CartDrawer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { categories, type Category } from '../data/products';
@@ -13,6 +14,7 @@ const navItems: Category[] = [
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user: customer, isAuthenticated } = useCustomerStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const { items, getTotal } = useCartStore();
@@ -97,7 +99,9 @@ const Navbar = () => {
         <div className="flex items-center gap-6">
           <Link to="/account" className="hidden md:flex items-center gap-2 text-gray-700 hover:text-red-600">
             <User size={20} />
-            <span className="font-bold text-sm">My Account</span>
+            <span className="font-bold text-sm">
+              {isAuthenticated && customer?.name ? customer.name.split(' ')[0] : 'My Account'}
+            </span>
           </Link>
 
           <button
@@ -277,6 +281,14 @@ const Navbar = () => {
                   className="text-sm font-bold text-gray-800 hover:text-red-600 uppercase py-2"
                 >
                   Blog
+                </Link>
+                <Link
+                  to="/account"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2 text-sm font-bold text-gray-800 hover:text-red-600 uppercase py-2 mt-4 border-t border-gray-100 pt-4"
+                >
+                  <User size={18} />
+                  {isAuthenticated && customer?.name ? customer.name : 'My Account'}
                 </Link>
               </div>
             </motion.div>

@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, CreditCard, Smartphone, ShieldCheck, ShoppingBag, ArrowLeft, Check, Lock, Gift } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
+import { useCustomerStore } from '../store/useCustomerStore';
+import { API_URL } from '../config';
 
 const steps = [
   { id: 1, name: 'Information' },
@@ -12,8 +14,13 @@ const steps = [
 
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { items, total, clearCart } = useCartStore();
+  const { user, token, isAuthenticated } = useCustomerStore();
   const navigate = useNavigate();
+
+  const shippingCost = (method: string) =>
+    method === 'standard' ? 500 : method === 'express' ? 1500 : 850;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -25,6 +32,22 @@ const Checkout = () => {
     shippingMethod: 'standard',
     paymentMethod: 'mpesa'
   });
+
+  useEffect(() => {
+    if (user) {
+      const parts = (user.name || '').split(' ');
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email,
+        firstName: parts[0] || '',
+        lastName: parts.slice(1).join(' ') || '',
+      }));
+    }
+  }, [user]);
+
+  const updateField = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   if (items.length === 0 && currentStep !== 4) {
     return (
@@ -44,11 +67,44 @@ const Checkout = () => {
     else handleComplete();
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    setIsSubmitting(true);
+    const grandTotal = total + shippingCost(formData.shippingMethod);
+
+    if (isAuthenticated && token) {
+      try {
+        await fetch(`${API_URL}/api/auth/orders`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            items: items.map((item) => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+            })),
+            total: grandTotal,
+            shippingName: `${formData.firstName} ${formData.lastName}`.trim(),
+            shippingAddress: formData.address,
+            shippingCity: formData.city,
+            shippingPhone: formData.phone,
+            paymentMethod: formData.paymentMethod,
+          }),
+        });
+      } catch {
+        // Order still shows success UI; customer can contact support
+      }
+    }
+
+    setIsSubmitting(false);
     setCurrentStep(4);
     setTimeout(() => {
       clearCart();
-      navigate('/');
+      navigate(isAuthenticated ? '/account' : '/');
     }, 5000);
   };
 
@@ -104,12 +160,20 @@ const Checkout = () => {
                     Contact Information
                   </h2>
                   <div className="space-y-6">
+                    {!isAuthenticated && (
+                      <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-sm">
+                        <Link to="/account" className="text-red-600 font-bold hover:underline">
+                          Sign in or create an account
+                        </Link>{' '}
+                        to track your order history.
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input label="First Name" placeholder="Your first name" />
-                      <Input label="Last Name" placeholder="Your last name" />
+                      <Input label="First Name" placeholder="Your first name" value={formData.firstName} onChange={(v) => updateField('firstName', v)} />
+                      <Input label="Last Name" placeholder="Your last name" value={formData.lastName} onChange={(v) => updateField('lastName', v)} />
                     </div>
-                    <Input label="Email Address" placeholder="email@example.com" type="email" />
-                    <Input label="Phone Number" placeholder="+254 7XX XXX XXX" />
+                    <Input label="Email Address" placeholder="email@example.com" type="email" value={formData.email} onChange={(v) => updateField('email', v)} />
+                    <Input label="Phone Number" placeholder="+254 7XX XXX XXX" value={formData.phone} onChange={(v) => updateField('phone', v)} />
                     
                     <div className="pt-6 border-t border-brand-stone mt-10">
                       <h2 className="text-xl font-bold text-brand-charcoal mb-8 flex items-center gap-3">
@@ -117,9 +181,9 @@ const Checkout = () => {
                         Shipping Address
                       </h2>
                       <div className="space-y-6">
-                        <Input label="Street Address" placeholder="Apartment, suite, unit, etc." />
+                        <Input label="Street Address" placeholder="Apartment, suite, unit, etc." value={formData.address} onChange={(v) => updateField('address', v)} />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <Input label="City" defaultValue="Nairobi" />
+                          <Input label="City" value={formData.city} onChange={(v) => updateField('city', v)} />
                           <Input label="Postal Code" placeholder="00100" />
                         </div>
                       </div>
@@ -264,9 +328,10 @@ const Checkout = () => {
                 </button>
                 <button 
                   onClick={handleNext}
-                  className="btn-primary !px-12 !py-5 flex items-center gap-3 shadow-xl active:scale-95 transition-all"
+                  disabled={isSubmitting}
+                  className="btn-primary !px-12 !py-5 flex items-center gap-3 shadow-xl active:scale-95 transition-all disabled:opacity-50"
                 >
-                  {currentStep === 3 ? 'Confirm & Send Gift' : 'Continue to ' + (currentStep === 1 ? 'Shipping' : 'Payment')}
+                  {isSubmitting ? 'Processing...' : currentStep === 3 ? 'Confirm & Send Gift' : 'Continue to ' + (currentStep === 1 ? 'Shipping' : 'Payment')}
                   <ChevronRight size={18} />
                 </button>
               </div>
@@ -304,7 +369,7 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between text-white/60 text-xs">
                     <span>Shipping</span>
-                    <span className="font-bold">KShs {formData.shippingMethod === 'standard' ? '500' : formData.shippingMethod === 'express' ? '1,500' : '850'}</span>
+                    <span className="font-bold">KShs {shippingCost(formData.shippingMethod).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-white/60 text-xs">
                     <span>V.A.T (16%)</span>
@@ -312,7 +377,7 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between text-xl font-bold text-white pt-4 border-t border-white/10">
                     <span className="tracking-tight">Grand Total</span>
-                    <span className="text-brand-gold">KShs {(total + (formData.shippingMethod === 'standard' ? 500 : formData.shippingMethod === 'express' ? 1500 : 850)).toLocaleString()}</span>
+                    <span className="text-brand-gold">KShs {(total + shippingCost(formData.shippingMethod)).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -341,13 +406,14 @@ const Checkout = () => {
   );
 };
 
-const Input = ({ label, placeholder, type = 'text', defaultValue }: { label: string, placeholder?: string, type?: string, defaultValue?: string }) => (
+const Input = ({ label, placeholder, type = 'text', value, onChange }: { label: string, placeholder?: string, type?: string, value?: string, onChange?: (v: string) => void }) => (
   <div className="space-y-2">
     <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-text-muted ml-1">{label}</label>
     <input 
       type={type} 
       placeholder={placeholder}
-      defaultValue={defaultValue}
+      value={value}
+      onChange={onChange ? (e) => onChange(e.target.value) : undefined}
       className="w-full bg-brand-warm-white border border-brand-stone rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-brand-crimson transition-all font-medium placeholder:text-brand-text-hint/50"
     />
   </div>
