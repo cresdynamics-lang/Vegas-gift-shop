@@ -23,22 +23,46 @@ const Navbar = () => {
 
   const getLabel = (cat: Category) => cat.navLabel || cat.name.replace(' Gifts', '');
 
-  const renderDropdownLinks = (cat: Category) => {
+  /** Keep mega-menus inside the viewport (tall watches list, jewelry near right edge). */
+  const getDropdownPosition = (navIndex: number, navTotal: number) => {
+    if (navIndex >= navTotal - 3) return 'right-0 left-auto';
+    if (navIndex <= 2) return 'left-0';
+    return 'left-1/2 -translate-x-1/2';
+  };
+
+  const dropdownPanelClass = (navIndex: number, navTotal: number) =>
+    [
+      'absolute top-full bg-white shadow-2xl border border-gray-100 rounded-b-xl z-50',
+      'max-h-[min(70vh,28rem)] overflow-y-auto overscroll-contain',
+      getDropdownPosition(navIndex, navTotal),
+    ].join(' ');
+
+  const renderDropdownLinks = (cat: Category, navIndex: number, navTotal: number) => {
     if (cat.groups && cat.groups.length > 0) {
+      const groupCount = cat.groups.length;
+      const gridCols =
+        groupCount >= 6
+          ? 'grid-cols-2 sm:grid-cols-3'
+          : groupCount >= 4
+            ? 'grid-cols-2 md:grid-cols-3'
+            : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
+
       return (
-        <div className="absolute top-full left-0 bg-white shadow-2xl border border-gray-100 rounded-b-xl z-50 p-6 min-w-[700px] max-w-[900px]">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div
+          className={`${dropdownPanelClass(navIndex, navTotal)} p-4 sm:p-5 w-max max-w-[min(calc(100vw-1.5rem),52rem)]`}
+        >
+          <div className={`grid ${gridCols} gap-4 sm:gap-5`}>
             {cat.groups.map((group) => (
-              <div key={group.title}>
-                <h4 className="text-[11px] font-bold uppercase tracking-widest text-red-600 mb-3 border-b border-gray-100 pb-2">
+              <div key={group.title} className="min-w-0">
+                <h4 className="text-[11px] font-bold uppercase tracking-widest text-red-600 mb-2 border-b border-gray-100 pb-2">
                   {group.title}
                 </h4>
-                <ul className="space-y-1.5">
+                <ul className="space-y-1">
                   {group.items.map((item) => (
                     <li key={item}>
                       <Link
                         to={`/shop?category=${encodeURIComponent(cat.name)}&subcategory=${encodeURIComponent(item)}`}
-                        className="text-sm text-gray-600 hover:text-red-600 hover:pl-1 transition-all block py-0.5"
+                        className="text-sm text-gray-600 hover:text-red-600 hover:pl-1 transition-all block py-0.5 break-words"
                       >
                         {item}
                       </Link>
@@ -54,7 +78,9 @@ const Navbar = () => {
 
     if (cat.subcategories.length > 0) {
       return (
-        <div className="absolute top-full left-0 w-64 bg-white shadow-xl border border-gray-100 rounded-b-lg overflow-hidden py-2 z-50">
+        <div
+          className={`${dropdownPanelClass(navIndex, navTotal)} w-56 sm:w-64 py-2`}
+        >
           {cat.subcategories.map((sub) => (
             <Link
               key={sub}
@@ -151,7 +177,7 @@ const Navbar = () => {
       {/* Desktop Navigation - Rio Gift Shop style */}
       <nav className="hidden lg:block border-t border-gray-100 relative z-50">
         <div className="max-w-7xl mx-auto px-4 w-full flex items-center justify-center gap-1 py-3 flex-wrap">
-          {navItems.map((category) => (
+          {navItems.map((category, navIndex) => (
             <div
               key={category.id}
               className="relative"
@@ -179,7 +205,7 @@ const Navbar = () => {
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15 }}
                   >
-                    {renderDropdownLinks(category)}
+                    {renderDropdownLinks(category, navIndex, navItems.length)}
                   </motion.div>
                 )}
               </AnimatePresence>

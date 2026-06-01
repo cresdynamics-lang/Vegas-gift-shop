@@ -98,25 +98,53 @@ export const DEFAULT_SETTINGS = {
 };
 
 export type SettingsData = typeof DEFAULT_SETTINGS;
+export type GoogleReviewEntry = SettingsData['googleReviews']['reviews'][number];
 
-export function mergeSettings(stored: Partial<SettingsData> | null): SettingsData {
+export type StoredSettings = {
+  general?: Partial<SettingsData['general']>;
+  payments?: Partial<SettingsData['payments']>;
+  shipping?: Partial<SettingsData['shipping']>;
+  branding?: Partial<SettingsData['branding']>;
+  notifications?: Partial<SettingsData['notifications']>;
+  googleReviews?: Partial<SettingsData['googleReviews']> & {
+    reviews?: GoogleReviewEntry[];
+  };
+};
+
+function isGoogleReviewEntry(value: unknown): value is GoogleReviewEntry {
+  if (!value || typeof value !== 'object') return false;
+  const r = value as Record<string, unknown>;
+  return (
+    typeof r.id === 'string' &&
+    typeof r.author === 'string' &&
+    typeof r.rating === 'number' &&
+    typeof r.text === 'string' &&
+    typeof r.date === 'string'
+  );
+}
+
+export function mergeSettings(stored: StoredSettings | null): SettingsData {
   if (!stored) return DEFAULT_SETTINGS;
+
+  const storedReviews = stored.googleReviews?.reviews;
+  const reviews = Array.isArray(storedReviews)
+    ? storedReviews.filter(isGoogleReviewEntry)
+    : DEFAULT_SETTINGS.googleReviews.reviews;
+
   return {
-    general: { ...DEFAULT_SETTINGS.general, ...(stored.general as object) },
-    payments: { ...DEFAULT_SETTINGS.payments, ...(stored.payments as object) },
+    general: { ...DEFAULT_SETTINGS.general, ...stored.general },
+    payments: { ...DEFAULT_SETTINGS.payments, ...stored.payments },
     shipping: {
       ...DEFAULT_SETTINGS.shipping,
-      ...(stored.shipping as object),
-      zones: (stored.shipping as any)?.zones ?? DEFAULT_SETTINGS.shipping.zones,
+      ...stored.shipping,
+      zones: stored.shipping?.zones ?? DEFAULT_SETTINGS.shipping.zones,
     },
-    branding: { ...DEFAULT_SETTINGS.branding, ...(stored.branding as object) },
-    notifications: { ...DEFAULT_SETTINGS.notifications, ...(stored.notifications as object) },
+    branding: { ...DEFAULT_SETTINGS.branding, ...stored.branding },
+    notifications: { ...DEFAULT_SETTINGS.notifications, ...stored.notifications },
     googleReviews: {
       ...DEFAULT_SETTINGS.googleReviews,
-      ...(stored.googleReviews as object),
-      reviews:
-        (stored.googleReviews as { reviews?: unknown[] })?.reviews ??
-        DEFAULT_SETTINGS.googleReviews.reviews,
+      ...stored.googleReviews,
+      reviews,
     },
   };
 }

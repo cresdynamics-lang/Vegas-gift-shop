@@ -2,7 +2,6 @@ import CategoryGrid from '../components/CategoryGrid';
 import RioGiftShopCategories from '../components/RioGiftShopCategories';
 import ProductSection from '../components/ProductSection';
 import Features from '../components/Features';
-import RioProductCard from '../components/RioProductCard';
 import { products } from '../data/products';
 import { BLOG_POSTS } from '../data/blogs';
 import { Link } from 'react-router-dom';
@@ -10,50 +9,56 @@ import { formatDisplayText } from '../utils/formatText';
 import GoogleTestimonialsMarquee from '../components/GoogleTestimonialsMarquee';
 import OptimizedImage from '../components/OptimizedImage';
 
-const SHOP_ALL_HOME_COUNT = 24;
-const FEATURED_HOME_COUNT = 8;
+const SHOP_ALL_MOBILE_COUNT = 24;
+const FEATURED_MOBILE_COUNT = 8;
 
 const Home = () => {
-  const shopAllProducts = products.slice(0, SHOP_ALL_HOME_COUNT);
-  const shopAllIds = new Set(shopAllProducts.map((p) => p.id));
+  const featuredProducts = products.slice(0, 8);
+  const bestSellers = products.slice(8, 16);
 
-  const featuredProductsList = products
-    .filter((p) => !shopAllIds.has(p.id) && (p.isNew || p.isSale || p.rating >= 5))
-    .slice(0, FEATURED_HOME_COUNT);
-  const featuredProducts =
-    featuredProductsList.length >= FEATURED_HOME_COUNT
-      ? featuredProductsList
-      : [
-          ...featuredProductsList,
-          ...products
-            .filter((p) => !shopAllIds.has(p.id) && !featuredProductsList.some((f) => f.id === p.id))
-            .slice(0, FEATURED_HOME_COUNT - featuredProductsList.length),
-        ];
+  /** Phones / small screens only — Rio-style product grid instead of category panel */
+  const shopAllMobile = products.slice(0, SHOP_ALL_MOBILE_COUNT);
+  const shopAllMobileIds = new Set(shopAllMobile.map((p) => p.id));
 
-  const featuredIds = new Set(featuredProducts.map((p) => p.id));
-  const bestSellers = products
-    .filter((p) => !shopAllIds.has(p.id) && !featuredIds.has(p.id))
-    .slice(0, 8);
-  const flashSaleProducts = products.filter((p) => p.isSale).slice(0, 4);
+  /** Desktop-only flash grid — avoid repeating mobile Shop All items */
+  const flashSaleProducts = (() => {
+    const saleItems = products.filter((p) => p.isSale);
+    const desktopPool = saleItems.filter((p) => !shopAllMobileIds.has(p.id));
+    return (desktopPool.length >= 4 ? desktopPool : saleItems).slice(0, 4);
+  })();
+  const featuredProductsMobile = (() => {
+    const picked = products
+      .filter((p) => !shopAllMobileIds.has(p.id) && (p.isNew || p.isSale || p.rating >= 5))
+      .slice(0, FEATURED_MOBILE_COUNT);
+    if (picked.length >= FEATURED_MOBILE_COUNT) return picked;
+    return [
+      ...picked,
+      ...products
+        .filter((p) => !shopAllMobileIds.has(p.id) && !picked.some((f) => f.id === p.id))
+        .slice(0, FEATURED_MOBILE_COUNT - picked.length),
+    ];
+  })();
 
   return (
     <main className="bg-white">
-      <ProductSection
-        title="Shop All"
-        products={shopAllProducts}
-        bgColor="bg-white"
-        compactTitle
-        viewAllHref="/shop"
-      />
+      {/* Mobile / tablet below lg: products first (no magenta category block on home) */}
+      <div className="lg:hidden">
+        <ProductSection
+          title="Shop All"
+          products={shopAllMobile}
+          bgColor="bg-white"
+          compactTitle
+          viewAllHref="/shop"
+        />
+        <ProductSection
+          title="Featured Products"
+          products={featuredProductsMobile}
+          bgColor="bg-gray-50"
+          compactTitle
+        />
+      </div>
 
-      <ProductSection
-        title="Featured Products"
-        products={featuredProducts}
-        bgColor="bg-gray-50"
-        compactTitle
-      />
-
-      {/* Desktop: category sidebar + circle grid */}
+      {/* Desktop (lg+): original layout — categories then featured products */}
       <section className="hidden lg:block border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-row gap-10 items-start">
@@ -61,39 +66,27 @@ const Home = () => {
               <RioGiftShopCategories />
             </div>
             <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-bold mb-6 sr-only">Browse by category</h2>
               <CategoryGrid />
             </div>
           </div>
         </div>
       </section>
 
+      <div className="hidden lg:block">
+        <ProductSection title="Featured Categories" products={featuredProducts} bgColor="bg-white" />
+      </div>
+
       <Features />
 
-      {/* Flash Sales */}
-      <section className="py-6 sm:py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 gap-3">
-            <h2 className="text-base sm:text-2xl font-bold">Flash Sales</h2>
-            <div className="flex gap-2 sm:gap-4 items-center">
-              {['00', '00'].map((val, i) => (
-                <div key={i} className="flex flex-col items-center">
-                  <span className="bg-[#C7447E] text-white font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded text-sm sm:text-base min-w-[40px] text-center">
-                    {val}
-                  </span>
-                  <span className="text-[10px] sm:text-xs mt-0.5 font-medium text-gray-500">
-                    {i === 0 ? 'Minutes' : 'Seconds'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-6">
-            {flashSaleProducts.map((product, index) => (
-              <RioProductCard key={product.id} product={product} priority={index < 2} />
-            ))}
-          </div>
-        </div>
-      </section>
+      <div className="hidden lg:block">
+        <ProductSection
+          title="Flash Sales"
+          products={flashSaleProducts}
+          bgColor="bg-gray-50"
+          viewAllHref="/shop"
+        />
+      </div>
 
       <ProductSection
         title="Best Selling Products"

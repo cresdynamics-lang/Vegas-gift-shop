@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import OptimizedImage from './OptimizedImage';
+import { IMAGE_WIDTH } from '../utils/imageUtils';
 
 /** Subtle magnify, WooCommerce/Rio default is ~1.5×, not a heavy zoom. */
 const ZOOM_SCALE = 1.5;
@@ -61,6 +62,7 @@ const ProductImageZoom = ({ src, alt, className = '', children, priority = true 
         src={src}
         alt={alt}
         priority={priority}
+        width={IMAGE_WIDTH.detail}
         draggable={false}
         sizes="(max-width: 1024px) 100vw, 50vw"
         className="w-full h-full object-contain select-none will-change-transform"

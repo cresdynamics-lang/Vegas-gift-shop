@@ -1,20 +1,27 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { Product } from '../data/products';
 import { getProductSecondaryImage } from '../utils/productDisplay';
-import OptimizedImage from './OptimizedImage';
+import {
+  getProductImageUrl,
+  getStaticAssetUrl,
+  IMAGE_WIDTH,
+  sanitizeProductImageSrc,
+} from '../utils/imageUtils';
 
 interface ProductCardImageProps {
   product: Product;
   className?: string;
   imageClassName?: string;
   children?: ReactNode;
-  /** First row of grids: load immediately for faster LCP */
   priority?: boolean;
 }
 
+const fade =
+  'transition-opacity duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]';
+
 /**
- * Rio / WPZoom secondary image fade on hover.
- * Secondary image loads only on hover to avoid doubling grid bandwidth.
+ * Product card image with optional second gallery image on hover.
+ * Secondary is preloaded; primary only fades after secondary is ready.
  */
 const ProductCardImage = ({
   product,
@@ -23,38 +30,84 @@ const ProductCardImage = ({
   children,
   priority = false,
 }: ProductCardImageProps) => {
-  const secondaryUrl = getProductSecondaryImage(product);
-  const [showSecondary, setShowSecondary] = useState(false);
-  const transition =
-    'transition-opacity duration-[850ms] ease-[cubic-bezier(0.23,1,0.32,1)]';
+  const primarySrc = sanitizeProductImageSrc(product.image);
+  const secondaryRaw = getProductSecondaryImage(product);
+  const secondarySrc =
+    secondaryRaw && sanitizeProductImageSrc(secondaryRaw) !== primarySrc
+      ? sanitizeProductImageSrc(secondaryRaw)
+      : null;
 
-  const handlePointerEnter = () => {
-    if (secondaryUrl) setShowSecondary(true);
-  };
+  const [hovering, setHovering] = useState(false);
+  const [secondaryReady, setSecondaryReady] = useState(false);
+  const [secondaryFailed, setSecondaryFailed] = useState(false);
+
+  const primaryUrl = getProductImageUrl(primarySrc, IMAGE_WIDTH.card);
+  const secondaryUrl = secondarySrc
+    ? getProductImageUrl(secondarySrc, IMAGE_WIDTH.card)
+    : null;
+
+  const canSwap = Boolean(secondaryUrl) && secondaryReady && !secondaryFailed;
+  const swapVisible = canSwap && hovering;
+
+  useEffect(() => {
+    setSecondaryReady(false);
+    setSecondaryFailed(false);
+    if (!secondarySrc) return;
+
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => setSecondaryReady(true);
+    img.onerror = () => {
+      const fallback = new Image();
+      fallback.onload = () => setSecondaryReady(true);
+      fallback.onerror = () => setSecondaryFailed(true);
+      fallback.src = getStaticAssetUrl(secondarySrc);
+    };
+    img.src = getProductImageUrl(secondarySrc, IMAGE_WIDTH.card);
+  }, [secondarySrc]);
+
+  const imgClass = `w-full h-full object-contain ${imageClassName}`;
 
   return (
     <div
       className={`relative overflow-hidden bg-gray-50 ${className}`}
-      onPointerEnter={handlePointerEnter}
+      onPointerEnter={() => setHovering(true)}
+      onPointerLeave={() => setHovering(false)}
     >
-      <OptimizedImage
-        src={product.image}
-        alt={product.name}
-        priority={priority}
-        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        className={`absolute inset-0 w-full h-full object-contain ${imageClassName} ${transition} ${
-          secondaryUrl ? 'group-hover:opacity-0' : 'group-hover:scale-[1.03] transition-all duration-500'
-        }`}
-      />
-      {secondaryUrl && showSecondary && (
-        <OptimizedImage
-          src={secondaryUrl}
-          alt=""
-          aria-hidden
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className={`absolute inset-0 w-full h-full object-contain ${imageClassName} opacity-0 ${transition} group-hover:opacity-100`}
+      {/* Primary — stays visible until swap is safe */}
+      <div
+        className={`absolute inset-0 ${fade} ${
+          swapVisible ? 'opacity-0' : 'opacity-100'
+        } ${!secondarySrc ? 'group-hover:scale-[1.03] transition-transform duration-500' : ''}`}
+      >
+        <img
+          src={primaryUrl}
+          alt={product.name}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          {...(priority ? { fetchPriority: 'high' as const } : {})}
+          className={imgClass}
+          onError={(e) => {
+            const el = e.currentTarget;
+            if (el.src !== getStaticAssetUrl(primarySrc)) {
+              el.src = getStaticAssetUrl(primarySrc);
+            }
+          }}
         />
+      </div>
+
+      {/* Secondary — preloaded, only shown when ready + hovered */}
+      {secondaryUrl && !secondaryFailed && (
+        <div
+          className={`absolute inset-0 ${fade} ${
+            swapVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          aria-hidden={!swapVisible}
+        >
+          <img src={secondaryUrl} alt="" className={imgClass} />
+        </div>
       )}
+
       {children}
     </div>
   );

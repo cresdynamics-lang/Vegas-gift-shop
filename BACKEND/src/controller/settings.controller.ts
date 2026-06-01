@@ -1,6 +1,38 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
-import { DEFAULT_SETTINGS, mergeSettings } from '../lib/defaultSettings';
+import { DEFAULT_SETTINGS, mergeSettings, type StoredSettings } from '../lib/defaultSettings';
+
+function storedFromRow(row: {
+  general: unknown;
+  payments: unknown;
+  shipping: unknown;
+  branding: unknown;
+  notifications: unknown;
+  googleReviews: unknown;
+}): StoredSettings {
+  return {
+    general: row.general as StoredSettings['general'],
+    payments: row.payments as StoredSettings['payments'],
+    shipping: row.shipping as StoredSettings['shipping'],
+    branding: row.branding as StoredSettings['branding'],
+    notifications: row.notifications as StoredSettings['notifications'],
+    googleReviews: row.googleReviews as StoredSettings['googleReviews'],
+  };
+}
+
+function storedPartialFromRow(row: {
+  general: unknown;
+  branding: unknown;
+  shipping: unknown;
+  googleReviews: unknown;
+}): StoredSettings {
+  return {
+    general: row.general as StoredSettings['general'],
+    branding: row.branding as StoredSettings['branding'],
+    shipping: row.shipping as StoredSettings['shipping'],
+    googleReviews: row.googleReviews as StoredSettings['googleReviews'],
+  };
+}
 
 export const getSettings = async (_req: Request, res: Response) => {
   try {
@@ -20,16 +52,7 @@ export const getSettings = async (_req: Request, res: Response) => {
       });
     }
 
-    const settings = mergeSettings({
-      general: row.general as object,
-      payments: row.payments as object,
-      shipping: row.shipping as object,
-      branding: row.branding as object,
-      notifications: row.notifications as object,
-      googleReviews: row.googleReviews as object,
-    });
-
-    res.json(settings);
+    res.json(mergeSettings(storedFromRow(row)));
   } catch (error) {
     console.error('Get settings error:', error);
     res.status(500).json({ error: 'Failed to load settings' });
@@ -38,17 +61,8 @@ export const getSettings = async (_req: Request, res: Response) => {
 
 export const getPublicSettings = async (_req: Request, res: Response) => {
   try {
-    let row = await prisma.storeSettings.findUnique({ where: { id: 'default' } });
-    const settings = mergeSettings(
-      row
-        ? {
-            general: row.general as object,
-            branding: row.branding as object,
-            shipping: row.shipping as object,
-            googleReviews: row.googleReviews as object,
-          }
-        : null
-    );
+    const row = await prisma.storeSettings.findUnique({ where: { id: 'default' } });
+    const settings = mergeSettings(row ? storedPartialFromRow(row) : null);
 
     res.json({
       general: settings.general,
@@ -59,7 +73,7 @@ export const getPublicSettings = async (_req: Request, res: Response) => {
       },
       googleReviews: settings.googleReviews,
     });
-  } catch (error) {
+  } catch {
     res.json({
       general: DEFAULT_SETTINGS.general,
       branding: DEFAULT_SETTINGS.branding,
@@ -76,18 +90,7 @@ export const updateSettings = async (req: Request, res: Response) => {
   try {
     const { general, payments, shipping, branding, notifications, googleReviews } = req.body;
     const current = await prisma.storeSettings.findUnique({ where: { id: 'default' } });
-    const merged = mergeSettings(
-      current
-        ? {
-            general: current.general as object,
-            payments: current.payments as object,
-            shipping: current.shipping as object,
-            branding: current.branding as object,
-            notifications: current.notifications as object,
-            googleReviews: current.googleReviews as object,
-          }
-        : null
-    );
+    const merged = mergeSettings(current ? storedFromRow(current) : null);
 
     const updated = {
       general: general ? { ...merged.general, ...general } : merged.general,
@@ -104,16 +107,7 @@ export const updateSettings = async (req: Request, res: Response) => {
       create: { id: 'default', ...updated },
     });
 
-    res.json(
-      mergeSettings({
-        general: row.general as object,
-        payments: row.payments as object,
-        shipping: row.shipping as object,
-        branding: row.branding as object,
-        notifications: row.notifications as object,
-        googleReviews: row.googleReviews as object,
-      })
-    );
+    res.json(mergeSettings(storedFromRow(row)));
   } catch (error) {
     console.error('Update settings error:', error);
     res.status(500).json({ error: 'Failed to save settings' });

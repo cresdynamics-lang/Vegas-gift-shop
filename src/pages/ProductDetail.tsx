@@ -27,7 +27,7 @@ import type { ProductPackageSection, ProductAttribute } from '../data/products';
 import { API_URL } from '../config';
 import { syncProductToBackend } from '../utils/syncProductToBackend';
 import { formatDisplayText } from '../utils/formatText';
-import { preloadImage } from '../utils/imageUtils';
+import { IMAGE_WIDTH, preloadImage } from '../utils/imageUtils';
 import OptimizedImage from '../components/OptimizedImage';
 import {
   RIO_DELIVERY_BULLETS,
@@ -59,8 +59,8 @@ const ProductDetail = () => {
       shortDescription: (o.shortDescription as string | undefined) ?? staticProduct.shortDescription,
       price: typeof o.price === 'number' ? o.price : staticProduct.price,
       oldPrice: (o.oldPrice as number | undefined) ?? staticProduct.oldPrice,
-      image: (o.image as string) || staticProduct.image,
-      images: (o.images as string[] | undefined) ?? staticProduct.images,
+      image: staticProduct.image,
+      images: staticProduct.images ?? (o.images as string[] | undefined),
       packageSections:
         (o.packageSections as ProductPackageSection[] | undefined) ?? staticProduct.packageSections,
       attributes: (o.attributes as ProductAttribute[] | undefined) ?? staticProduct.attributes,
@@ -273,6 +273,7 @@ const ProductDetail = () => {
                     src={src}
                     alt=""
                     loading="lazy"
+                    width={IMAGE_WIDTH.thumb}
                     sizes="80px"
                     className="w-full h-full object-contain"
                   />

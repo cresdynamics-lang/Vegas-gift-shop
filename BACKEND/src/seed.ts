@@ -83,6 +83,25 @@ async function main() {
     }
   }
 
+  const removedProductIds = [
+    'crystal-star-appreciation-trophy',
+    'elegant-golden-base-crystal-trophy',
+    'golden-base-crystal-trophy',
+    'personalized-pink-stanley-tumbler',
+    'personalized-a5-leather-notebook',
+    'customized-notebook-organizer',
+    'stanley-style-pink-mug',
+    'corporate-prestige-2026-diary',
+    'personalized-stainless-travel-mug',
+    '500ml-travel-thermal-bottle',
+  ];
+  const deleted = await prisma.product.deleteMany({
+    where: { id: { in: removedProductIds } },
+  });
+  if (deleted.count > 0) {
+    console.log(`Removed ${deleted.count} discontinued product(s) from database.`);
+  }
+
   console.log('Seeding admin user...');
   const hashedPassword = await bcrypt.hash('admin_password_2026', 10);
   await prisma.user.upsert({

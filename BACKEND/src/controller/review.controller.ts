@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
-import { ReviewStatus } from '../../prisma/generated/client';
+import { paramId } from '../lib/requestParams';
+import { Prisma, ReviewStatus } from '../../prisma/generated/client';
 
 interface AuthRequest extends Request {
   user?: { id: string; role: string; name?: string; email?: string };
@@ -50,7 +51,7 @@ function formatReview(review: {
 /** Public: approved reviews for a product */
 export const getProductReviews = async (req: Request, res: Response) => {
   try {
-    const { productId } = req.params;
+    const productId = paramId(req, 'productId');
     const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) {
       return res.status(404).json({
@@ -77,7 +78,7 @@ export const getProductReviews = async (req: Request, res: Response) => {
 /** Storefront: submit a review (guest or logged-in customer) */
 export const createProductReview = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId } = req.params;
+    const productId = paramId(req, 'productId');
     const { rating, comment, reviewerName, reviewerEmail } = req.body;
 
     const ratingNum = parseInt(String(rating), 10);
@@ -135,11 +136,7 @@ export const createProductReview = async (req: AuthRequest, res: Response) => {
 export const getAdminReviews = async (req: Request, res: Response) => {
   try {
     const { status, productId, search } = req.query;
-    const where: {
-      status?: ReviewStatus;
-      productId?: string;
-      OR?: { reviewerName?: object; comment?: object; product?: object };
-    } = {};
+    const where: Prisma.ReviewWhereInput = {};
 
     if (status && Object.values(ReviewStatus).includes(status as ReviewStatus)) {
       where.status = status as ReviewStatus;
@@ -173,7 +170,7 @@ export const getAdminReviews = async (req: Request, res: Response) => {
 /** Admin: approve / reject */
 export const updateReviewStatus = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     const { status } = req.body;
 
     if (!Object.values(ReviewStatus).includes(status)) {
@@ -200,7 +197,7 @@ export const updateReviewStatus = async (req: Request, res: Response) => {
 /** Admin: delete review */
 export const deleteReview = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     const existing = await prisma.review.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ error: 'Review not found' });
 

@@ -51,7 +51,7 @@ const ProductSection = ({
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {products.map((product, index) => (
-            <RioProductCard key={product.id} product={product} priority={index < 4} />
+            <RioProductCard key={product.id} product={product} priority={index < 2} />
           ))}
         </div>
       </div>

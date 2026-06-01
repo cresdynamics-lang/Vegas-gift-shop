@@ -33,7 +33,21 @@ export type { Category, SubcategoryGroup } from './navigation';
 export { categories } from './navigation';
 
 
-export const products: Product[] = [
+/** Products removed from the storefront catalog */
+const REMOVED_PRODUCT_IDS = new Set([
+  'crystal-star-appreciation-trophy',
+  'elegant-golden-base-crystal-trophy',
+  'golden-base-crystal-trophy',
+  'personalized-pink-stanley-tumbler',
+  'personalized-a5-leather-notebook',
+  'customized-notebook-organizer',
+  'stanley-style-pink-mug',
+  'corporate-prestige-2026-diary',
+  'personalized-stainless-travel-mug',
+  '500ml-travel-thermal-bottle',
+]);
+
+const productsCatalog: Product[] = [
   {
     "id": "golden-prestige-velvet-plaque",
     "name": "Golden Prestige Velvet Award Plaque",
@@ -64,37 +78,6 @@ export const products: Product[] = [
     "shortDescription": "Elegant custom crystal award with a deep black base for a modern, sophisticated look.",
     "images": [
       "/gifts for men 1.jpg"
-    ]
-  },
-  {
-    "id": "crystal-star-appreciation-trophy",
-    "name": "Crystal Star Appreciation Trophy",
-    "price": 4200,
-    "rating": 5,
-    "reviews": 15,
-    "image": "/hero.png",
-    "category": "Awards & Trophies",
-    "isNew": true,
-    "description": "A stunning crystal star trophy designed to show deep appreciation for outstanding achievements.",
-    "enableCustomization": true,
-    "shortDescription": "A stunning crystal star trophy designed to show deep appreciation for outstanding achievements.",
-    "images": [
-      "/hero.png"
-    ]
-  },
-  {
-    "id": "elegant-golden-base-crystal-trophy",
-    "name": "Elegant Golden Base Crystal Trophy",
-    "price": 4800,
-    "rating": 5,
-    "reviews": 9,
-    "image": "/hero.png",
-    "category": "Awards & Trophies",
-    "description": "High-end crystal trophy featuring a solid golden base for maximum impact.",
-    "enableCustomization": true,
-    "shortDescription": "High-end crystal trophy featuring a solid golden base for maximum impact.",
-    "images": [
-      "/hero.png"
     ]
   },
   {
@@ -378,13 +361,13 @@ export const products: Product[] = [
     "price": 2200,
     "rating": 4,
     "reviews": 35,
-    "image": "/teddy bear gift 2.png",
+    "image": "/products/cream-romantic-teddy-bear.jpeg",
     "category": "Romantic & Valentine Gifts",
     "description": "A classic cream-colored teddy bear, soft to the touch and perfect for gifting.",
     "enableCustomization": true,
     "shortDescription": "A classic cream-colored teddy bear, soft to the touch and perfect for gifting.",
     "images": [
-      "/teddy bear gift 2.png"
+      "/products/cream-romantic-teddy-bear.jpeg"
     ]
   },
   {
@@ -61728,3 +61711,5 @@ export const products: Product[] = [
     ]
   }
 ];
+
+export const products: Product[] = productsCatalog.filter((p) => !REMOVED_PRODUCT_IDS.has(p.id));

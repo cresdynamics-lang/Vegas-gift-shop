@@ -9,6 +9,7 @@ import { MulterError } from "multer";
 import productRoutes from "./routes/product.routes";
 import authRoutes from "./routes/auth.routes";
 import adminRoutes from "./routes/admin.routes";
+import imageRoutes from "./routes/image.routes";
 import { getPublicSettings } from "./controller/settings.controller";
 
 dotenv.config();
@@ -22,6 +23,8 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(morgan("dev"));
 app.use(express.json({ limit: "2mb" }));
 app.use("/uploads", express.static(uploadsPath));
+
+app.use("/api/img", imageRoutes);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);

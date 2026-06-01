@@ -126,32 +126,6 @@ export const products: Product[] = [
     description: "Elegant custom crystal award with a deep black base for a modern, sophisticated look."
   },
   {
-    id: "crystal-star-appreciation-trophy",
-    name: "Crystal Star Appreciation Trophy",
-    price: 4200,
-    
-    rating: 5,
-    reviews: 15,
-    image: "/hero.png",
-    category: "Awards & Trophies",
-    
-    isNew: true,
-    description: "A stunning crystal star trophy designed to show deep appreciation for outstanding achievements."
-  },
-  {
-    id: "elegant-golden-base-crystal-trophy",
-    name: "Elegant Golden Base Crystal Trophy",
-    price: 4800,
-    
-    rating: 5,
-    reviews: 9,
-    image: "/hero.png",
-    category: "Awards & Trophies",
-    
-    
-    description: "High-end crystal trophy featuring a solid golden base for maximum impact."
-  },
-  {
     id: "personalized-stainless-travel-mug",
     name: "Personalized Stainless Steel Travel Mug",
     price: 2500,
@@ -366,7 +340,7 @@ export const products: Product[] = [
     
     rating: 4,
     reviews: 35,
-    image: "/teddy bear gift 2.png",
+    image: "/products/cream-romantic-teddy-bear.jpeg",
     category: "Romantic & Valentine Gifts",
     
     

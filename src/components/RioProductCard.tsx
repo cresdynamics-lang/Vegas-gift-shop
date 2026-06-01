@@ -15,7 +15,7 @@ export default function RioProductCard({ product, priority = false }: RioProduct
   const displayName = formatDisplayText(product.name);
 
   return (
-    <article className="group flex flex-col bg-white border border-gray-200 rounded-sm overflow-hidden h-full">
+    <article className="group flex flex-col bg-white border border-gray-200 rounded-sm overflow-hidden h-full [content-visibility:auto]">
       <Link to={`/product/${product.id}`} className="relative aspect-square block bg-gray-50 p-2">
         <ProductCardImage product={product} className="w-full h-full" priority={priority}>
           {product.isSale && (

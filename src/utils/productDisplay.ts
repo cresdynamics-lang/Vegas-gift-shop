@@ -1,4 +1,5 @@
 import type { Product } from '../data/products';
+import { isBrokenProductImage } from './imageUtils';
 
 /** Second gallery image for Rio / WPZoom hover swap on product cards. */
 export function getProductSecondaryImage(product: Product): string | null {
@@ -11,7 +12,11 @@ export function getProductSecondaryImage(product: Product): string | null {
 
   if (gallery.length < 2) return null;
 
-  const secondary = gallery.find((src, i) => i > 0 && src !== gallery[0]);
+  const primary = gallery[0];
+  const secondary = gallery.find(
+    (src, i) => i > 0 && src !== primary && !isBrokenProductImage(src)
+  );
+
   return secondary ?? null;
 }
 

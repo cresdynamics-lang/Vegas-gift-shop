@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import InfoPageLayout from '../components/InfoPageLayout';
 import { INFO_PAGES } from '../data/infoPages';
@@ -5,7 +6,7 @@ import AboutPage from './info/AboutPage';
 import ShippingPage from './info/ShippingPage';
 import ReturnsPage from './info/ReturnsPage';
 
-const CUSTOM_PAGES: Record<string, () => JSX.Element> = {
+const CUSTOM_PAGES: Record<string, () => ReactElement> = {
   about: AboutPage,
   shipping: ShippingPage,
   returns: ReturnsPage,

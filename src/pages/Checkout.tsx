@@ -15,7 +15,8 @@ const steps = [
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { items, total, clearCart } = useCartStore();
+  const { items, getTotal, clearCart } = useCartStore();
+  const subtotal = getTotal();
   const { user, token, isAuthenticated } = useCustomerStore();
   const navigate = useNavigate();
 
@@ -69,7 +70,7 @@ const Checkout = () => {
 
   const handleComplete = async () => {
     setIsSubmitting(true);
-    const grandTotal = total + shippingCost(formData.shippingMethod);
+    const grandTotal = subtotal + shippingCost(formData.shippingMethod);
 
     if (isAuthenticated && token) {
       try {
@@ -365,7 +366,7 @@ const Checkout = () => {
                 <div className="space-y-4 pt-8 border-t border-white/10">
                   <div className="flex justify-between text-white/60 text-xs">
                     <span>Subtotal</span>
-                    <span className="font-bold">KShs {total.toLocaleString()}</span>
+                    <span className="font-bold">KShs {subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-white/60 text-xs">
                     <span>Shipping</span>
@@ -377,7 +378,7 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between text-xl font-bold text-white pt-4 border-t border-white/10">
                     <span className="tracking-tight">Grand Total</span>
-                    <span className="text-brand-gold">KShs {(total + shippingCost(formData.shippingMethod)).toLocaleString()}</span>
+                    <span className="text-brand-gold">KShs {(subtotal + shippingCost(formData.shippingMethod)).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

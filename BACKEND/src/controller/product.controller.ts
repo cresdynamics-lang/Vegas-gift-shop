@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { upsertStorefrontProduct } from '../lib/productSync';
+import { paramId } from '../lib/requestParams';
 import { ReviewStatus } from '../../prisma/generated/client';
 
 export const getProducts = async (req: Request, res: Response) => {
@@ -37,7 +38,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const syncStorefrontProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     const body = req.body;
 
     if (!body?.name || body.price == null || !body.image || !body.category) {
@@ -57,7 +58,7 @@ export const syncStorefrontProduct = async (req: Request, res: Response) => {
 
 export const getProductById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -99,7 +100,7 @@ export const createCategory = async (req: Request, res: Response) => {
 
 export const updateCategory = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     const { name, icon } = req.body;
     const category = await prisma.category.update({
       where: { id },
@@ -113,7 +114,7 @@ export const updateCategory = async (req: Request, res: Response) => {
 
 export const deleteCategory = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     await prisma.category.delete({ where: { id } });
     res.json({ success: true, message: 'Category deleted' });
   } catch (error) {
@@ -154,7 +155,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     const {
       name, description, shortDescription, price, oldPrice, image, images,
       categoryId, isSale, isNew, stock, packageSections, attributes, features, enableCustomization,
@@ -187,7 +188,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = paramId(req, 'id');
     await prisma.product.delete({
       where: { id }
     });

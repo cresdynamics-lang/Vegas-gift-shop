@@ -7,6 +7,9 @@ import OptimizedImage from '../components/OptimizedImage';
 import { Filter, X, ChevronDown, Search } from 'lucide-react';
 import { productMatchesTarget } from '../data/categoryMatchers';
 import RioGiftShopCategories from '../components/RioGiftShopCategories';
+import { IMAGE_WIDTH } from '../utils/imageUtils';
+
+const SHOP_PAGE_SIZE = 48;
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -18,6 +21,7 @@ const Shop = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(SHOP_PAGE_SIZE);
 
   // Sync state with URL param
   useEffect(() => {
@@ -90,6 +94,17 @@ const Shop = () => {
     return list;
   }, [filteredProducts, sortBy]);
 
+  useEffect(() => {
+    setVisibleCount(SHOP_PAGE_SIZE);
+  }, [selectedCategory, selectedSubcategory, searchQuery, sortBy]);
+
+  const visibleProducts = useMemo(
+    () => sortedProducts.slice(0, visibleCount),
+    [sortedProducts, visibleCount]
+  );
+
+  const hasMore = visibleCount < sortedProducts.length;
+
   return (
     <div className="bg-brand-warm-white min-h-screen">
       {/* Header Section */}
@@ -99,6 +114,7 @@ const Shop = () => {
             src="/products/product_5.jpeg"
             alt=""
             priority
+            width={IMAGE_WIDTH.hero}
             sizes="100vw"
             className="w-full h-full object-cover object-center"
             aria-hidden="true"
@@ -225,12 +241,28 @@ const Shop = () => {
 
             {/* Product Grid */}
             {sortedProducts.length > 0 ? (
-              <ProductSection
-                title={selectedCategory === 'All' ? 'All Products' : selectedCategory}
-                products={sortedProducts}
-                bgColor="bg-transparent"
-                compactTitle
-              />
+              <>
+                <ProductSection
+                  title={selectedCategory === 'All' ? 'All Products' : selectedCategory}
+                  products={visibleProducts}
+                  bgColor="bg-transparent"
+                  compactTitle
+                />
+                {hasMore && (
+                  <div className="mt-8 sm:mt-10 flex flex-col items-center gap-2">
+                    <p className="text-xs text-brand-text-muted">
+                      Showing {visibleProducts.length} of {sortedProducts.length} products
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((n) => n + SHOP_PAGE_SIZE)}
+                      className="btn-primary px-8"
+                    >
+                      Load more products
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-20 bg-white rounded-3xl border border-brand-stone border-dashed">
                 <div className="w-20 h-20 bg-brand-stone/20 rounded-full flex items-center justify-center mx-auto mb-6">
