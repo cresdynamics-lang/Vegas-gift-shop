@@ -13,6 +13,14 @@ dist-ssr
 *.local
 public/.cache
 
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+BACKEND/.env
+BACKEND/.env.*
+!BACKEND/.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
