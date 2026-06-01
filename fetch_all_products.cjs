@@ -54,9 +54,62 @@ function decodeHtml(str) {
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/<[^>]*>/g, '')
+    .replace(/&gt;/g, '>');
+}
+
+function htmlToPlainText(html) {
+  return decodeHtml(html)
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '\n- ')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+const SECTION_DEFS = [
+  { title: "What's included", patterns: [/what'?s included:?/i, /^set includes:?/im, /^gift set includes:?/im] },
+  { title: 'Features', patterns: [/^key features:?/im, /^features:?/im] },
+  { title: "Why you'll love it", patterns: [/^why you(?:'|')?ll love it:?/im] },
+  { title: 'Perfect for', patterns: [/^perfect for:?/im, /^ideal for:?/im] },
+];
+
+function extractListItems(block) {
+  const items = [];
+  for (const line of block.split('\n').map((l) => l.trim()).filter(Boolean)) {
+    const bullet = line.match(/^[-•*–—]\s*(.+)$/);
+    const numbered = line.match(/^\d+[.)]\s+(.+)$/);
+    if (bullet) items.push(bullet[1].trim());
+    else if (numbered) items.push(numbered[1].trim());
+    else if (line.length > 2 && !/^(features?|perfect for|set includes):?$/i.test(line)) items.push(line);
+  }
+  return [...new Set(items.filter((i) => i.length > 2))];
+}
+
+function parseDescription(raw) {
+  const text = raw.replace(/\r\n/g, '\n').trim();
+  const markers = [];
+  for (const def of SECTION_DEFS) {
+    for (const pattern of def.patterns) {
+      const m = pattern.exec(text);
+      if (m) {
+        markers.push({ index: m.index, title: def.title, len: m[0].length });
+        break;
+      }
+    }
+  }
+  markers.sort((a, b) => a.index - b.index);
+  if (!markers.length) return { intro: text, sections: [] };
+  const intro = text.slice(0, markers[0].index).trim();
+  const sections = [];
+  for (let i = 0; i < markers.length; i++) {
+    const body = text.slice(markers[i].index + markers[i].len, markers[i + 1]?.index ?? text.length).trim();
+    const items = extractListItems(body);
+    if (items.length) sections.push({ title: markers[i].title, items });
+  }
+  return { intro, sections };
 }
 
 function slugify(text) {
@@ -131,6 +184,10 @@ async function main() {
     const catNames = (p.categories || []).map((c) => sanitize(decodeHtml(c.name))).filter(Boolean);
     const primaryCategory = catNames.find((c) => !['Best Selling Products', 'Flash Sales', 'Featured'].includes(c)) || catNames[0] || 'Gifts';
 
+    const html = p.short_description || p.description || '';
+    const plain = htmlToPlainText(html) || `${name} - premium gift from Vegas Gift Shop.`;
+    const { intro, sections } = parseDescription(plain);
+
     const product = {
       id: slug,
       name,
@@ -142,7 +199,8 @@ async function main() {
       category: primaryCategory,
       categories: catNames,
       ...(onSale ? { isSale: true } : {}),
-      description: sanitize(decodeHtml(p.short_description || p.description || `${name} - premium gift from Vegas Gift Shop.`)).slice(0, 500) || `${name} - premium gift available at Vegas Gift Shop Nairobi.`,
+      description: sanitize(intro).slice(0, 2000) || sanitize(`${name} - premium gift available at Vegas Gift Shop Nairobi.`),
+      ...(sections.length > 0 ? { packageSections: sections.map((s) => ({ title: s.title, items: s.items.map((i) => sanitize(i)).filter(Boolean) })) } : {}),
     };
 
     const imgUrl = p.images?.[0]?.src;
@@ -185,7 +243,12 @@ async function main() {
   const merged = Array.from(mergedMap.values());
   const tsProducts = JSON.stringify(merged, null, 2);
 
-  const finalContent = `export type Product = {
+  const finalContent = `export type ProductPackageSection = {
+  title: string;
+  items: string[];
+};
+
+export type Product = {
   id: string;
   name: string;
   price: number;
@@ -198,6 +261,7 @@ async function main() {
   isNew?: boolean;
   isSale?: boolean;
   description: string;
+  packageSections?: ProductPackageSection[];
   features?: string[];
 };
 

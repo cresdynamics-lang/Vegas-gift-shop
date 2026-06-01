@@ -26,6 +26,12 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -46,35 +52,46 @@ model Category {
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  name        String
-  description String
-  price       Float
-  oldPrice    Float?
-  image       String
-  rating      Float       @default(0)
-  reviewCount Int         @default(0)
-  stock       Int         @default(0)
-  isNew       Boolean     @default(false)
-  isSale      Boolean     @default(false)
-  categoryId  String
-  category    Category    @relation(fields: [categoryId], references: [id])
-  features    String[]
-  orderItems  OrderItem[]
-  reviews     Review[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String      @id @default(uuid())
+  name                String
+  description         String
+  price               Float
+  oldPrice            Float?
+  image               String
+  rating              Float       @default(0)
+  reviewCount         Int         @default(0)
+  stock               Int         @default(0)
+  isNew               Boolean     @default(false)
+  isSale              Boolean     @default(false)
+  categoryId          String
+  category            Category    @relation(fields: [categoryId], references: [id])
+  features            String[]
+  packageSections     Json?
+  images              Json?
+  attributes          Json?
+  shortDescription    String?
+  enableCustomization Boolean     @default(true)
+  orderItems          OrderItem[]
+  reviews             Review[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
-  total     Float
-  status    OrderStatus @default(PENDING)
-  items     OrderItem[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  total           Float
+  status          OrderStatus @default(PENDING)
+  items           OrderItem[]
+  itemsSnapshot   Json?
+  shippingName    String?
+  shippingAddress String?
+  shippingCity    String?
+  shippingPhone   String?
+  paymentMethod   String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model OrderItem {
@@ -88,15 +105,20 @@ model OrderItem {
 }
 
 model Review {
-  id        String   @id @default(uuid())
-  rating    Int
-  comment   String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String       @id @default(uuid())
+  rating        Int
+  comment       String
+  reviewerName  String
+  reviewerEmail String?
+  status        ReviewStatus @default(PENDING)
+  userId        String?
+  user          User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([productId, status])
 }
 
 model StoreSettings {
@@ -106,5 +128,6 @@ model StoreSettings {
   shipping      Json     @default("{}")
   branding      Json     @default("{}")
   notifications Json     @default("{}")
+  googleReviews Json     @default("{}")
   updatedAt     DateTime @updatedAt
 }

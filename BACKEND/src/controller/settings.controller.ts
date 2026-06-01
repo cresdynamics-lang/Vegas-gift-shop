@@ -15,6 +15,7 @@ export const getSettings = async (_req: Request, res: Response) => {
           shipping: DEFAULT_SETTINGS.shipping,
           branding: DEFAULT_SETTINGS.branding,
           notifications: DEFAULT_SETTINGS.notifications,
+          googleReviews: DEFAULT_SETTINGS.googleReviews,
         },
       });
     }
@@ -25,6 +26,7 @@ export const getSettings = async (_req: Request, res: Response) => {
       shipping: row.shipping as object,
       branding: row.branding as object,
       notifications: row.notifications as object,
+      googleReviews: row.googleReviews as object,
     });
 
     res.json(settings);
@@ -43,6 +45,7 @@ export const getPublicSettings = async (_req: Request, res: Response) => {
             general: row.general as object,
             branding: row.branding as object,
             shipping: row.shipping as object,
+            googleReviews: row.googleReviews as object,
           }
         : null
     );
@@ -54,6 +57,7 @@ export const getPublicSettings = async (_req: Request, res: Response) => {
         freeShippingThreshold: settings.shipping.freeShippingThreshold,
         zones: settings.shipping.zones.filter((z) => z.enabled),
       },
+      googleReviews: settings.googleReviews,
     });
   } catch (error) {
     res.json({
@@ -63,13 +67,14 @@ export const getPublicSettings = async (_req: Request, res: Response) => {
         freeShippingThreshold: DEFAULT_SETTINGS.shipping.freeShippingThreshold,
         zones: DEFAULT_SETTINGS.shipping.zones.filter((z) => z.enabled),
       },
+      googleReviews: DEFAULT_SETTINGS.googleReviews,
     });
   }
 };
 
 export const updateSettings = async (req: Request, res: Response) => {
   try {
-    const { general, payments, shipping, branding, notifications } = req.body;
+    const { general, payments, shipping, branding, notifications, googleReviews } = req.body;
     const current = await prisma.storeSettings.findUnique({ where: { id: 'default' } });
     const merged = mergeSettings(
       current
@@ -79,6 +84,7 @@ export const updateSettings = async (req: Request, res: Response) => {
             shipping: current.shipping as object,
             branding: current.branding as object,
             notifications: current.notifications as object,
+            googleReviews: current.googleReviews as object,
           }
         : null
     );
@@ -89,6 +95,7 @@ export const updateSettings = async (req: Request, res: Response) => {
       shipping: shipping ? { ...merged.shipping, ...shipping } : merged.shipping,
       branding: branding ? { ...merged.branding, ...branding } : merged.branding,
       notifications: notifications ? { ...merged.notifications, ...notifications } : merged.notifications,
+      googleReviews: googleReviews ? { ...merged.googleReviews, ...googleReviews } : merged.googleReviews,
     };
 
     const row = await prisma.storeSettings.upsert({
@@ -104,6 +111,7 @@ export const updateSettings = async (req: Request, res: Response) => {
         shipping: row.shipping as object,
         branding: row.branding as object,
         notifications: row.notifications as object,
+        googleReviews: row.googleReviews as object,
       })
     );
   } catch (error) {

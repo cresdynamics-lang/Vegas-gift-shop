@@ -24,35 +24,29 @@ async function main() {
     if (category) {
       const cleanName = prod.name.replace(/[^\x00-\x7F]/g, '');
       const cleanDesc = (prod.description || '').replace(/[^\x00-\x7F]/g, '');
-      
+      const cleanShort = (prod.shortDescription || '').replace(/[^\x00-\x7F]/g, '') || null;
+      const productData = {
+        name: cleanName,
+        price: prod.price,
+        oldPrice: prod.oldPrice || null,
+        rating: prod.rating,
+        reviewCount: prod.reviews,
+        image: prod.image,
+        images: prod.images ?? undefined,
+        shortDescription: cleanShort,
+        packageSections: prod.packageSections ?? undefined,
+        attributes: prod.attributes ?? undefined,
+        enableCustomization: prod.enableCustomization !== false,
+        isSale: prod.isSale || false,
+        isNew: prod.isNew || false,
+        description: cleanDesc,
+        categoryId: category.id,
+      };
+
       await prisma.product.upsert({
         where: { id: prod.id },
-        update: {
-          name: cleanName,
-          price: prod.price,
-          oldPrice: prod.oldPrice || null,
-          rating: prod.rating,
-          reviewCount: prod.reviews,
-          image: prod.image,
-          isSale: prod.isSale || false,
-          isNew: prod.isNew || false,
-          description: cleanDesc,
-          categoryId: category.id
-        },
-        create: {
-          id: prod.id,
-          name: cleanName,
-          price: prod.price,
-          oldPrice: prod.oldPrice || null,
-          rating: prod.rating,
-          reviewCount: prod.reviews,
-          image: prod.image,
-          isSale: prod.isSale || false,
-          isNew: prod.isNew || false,
-          description: cleanDesc,
-          categoryId: category.id,
-          stock: 100
-        }
+        update: productData,
+        create: { id: prod.id, ...productData, stock: 100 },
       });
     } else {
       // Create category if it doesn't exist
@@ -62,35 +56,29 @@ async function main() {
       
       const cleanName = prod.name.replace(/[^\x00-\x7F]/g, '');
       const cleanDesc = (prod.description || '').replace(/[^\x00-\x7F]/g, '');
-      
+      const cleanShort = (prod.shortDescription || '').replace(/[^\x00-\x7F]/g, '') || null;
+      const productData = {
+        name: cleanName,
+        price: prod.price,
+        oldPrice: prod.oldPrice || null,
+        rating: prod.rating,
+        reviewCount: prod.reviews,
+        image: prod.image,
+        images: prod.images ?? undefined,
+        shortDescription: cleanShort,
+        packageSections: prod.packageSections ?? undefined,
+        attributes: prod.attributes ?? undefined,
+        enableCustomization: prod.enableCustomization !== false,
+        isSale: prod.isSale || false,
+        isNew: prod.isNew || false,
+        description: cleanDesc,
+        categoryId: newCat.id,
+      };
+
       await prisma.product.upsert({
         where: { id: prod.id },
-        update: {
-          name: cleanName,
-          price: prod.price,
-          oldPrice: prod.oldPrice || null,
-          rating: prod.rating,
-          reviewCount: prod.reviews,
-          image: prod.image,
-          isSale: prod.isSale || false,
-          isNew: prod.isNew || false,
-          description: cleanDesc,
-          categoryId: newCat.id
-        },
-        create: {
-          id: prod.id,
-          name: cleanName,
-          price: prod.price,
-          oldPrice: prod.oldPrice || null,
-          rating: prod.rating,
-          reviewCount: prod.reviews,
-          image: prod.image,
-          isSale: prod.isSale || false,
-          isNew: prod.isNew || false,
-          description: cleanDesc,
-          categoryId: newCat.id,
-          stock: 100
-        }
+        update: productData,
+        create: { id: prod.id, ...productData, stock: 100 },
       });
     }
   }

@@ -26,6 +26,12 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -59,8 +65,13 @@ model Product {
   isSale        Boolean   @default(false)
   categoryId    String
   category      Category  @relation(fields: [categoryId], references: [id])
-  features      String[]
-  orderItems    OrderItem[]
+  features          String[]
+  packageSections   Json?
+  images            Json?
+  attributes        Json?
+  shortDescription  String?
+  enableCustomization Boolean @default(true)
+  orderItems      OrderItem[]
   reviews       Review[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -94,15 +105,20 @@ model OrderItem {
 }
 
 model Review {
-  id            String    @id @default(uuid())
+  id            String       @id @default(uuid())
   rating        Int
   comment       String
-  userId        String
-  user          User      @relation(fields: [userId], references: [id])
+  reviewerName  String
+  reviewerEmail String?
+  status        ReviewStatus @default(PENDING)
+  userId        String?
+  user          User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   productId     String
-  product       Product   @relation(fields: [productId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([productId, status])
 }
 
 model StoreSettings {
@@ -112,5 +128,6 @@ model StoreSettings {
   shipping      Json     @default("{}")
   branding      Json     @default("{}")
   notifications Json     @default("{}")
+  googleReviews Json     @default("{}")
   updatedAt     DateTime @updatedAt
 }

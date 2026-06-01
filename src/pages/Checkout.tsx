@@ -111,10 +111,10 @@ const Checkout = () => {
   return (
     <div className="min-h-screen bg-brand-warm-white pb-20">
       {/* Header */}
-      <div className="bg-white border-b border-brand-stone py-12 mb-12">
-        <div className="max-w-7xl mx-auto px-4">
+      <div className="bg-white border-b border-brand-stone py-8 sm:py-12 mb-8 sm:mb-12">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
           <div className="flex flex-col items-center">
-            <h1 className="text-3xl font-bold text-brand-charcoal mb-8 tracking-tight">Checkout</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-brand-charcoal mb-6 sm:mb-8 tracking-tight">Checkout</h1>
             
             {/* Steps Progress */}
             <div className="flex items-center gap-4 sm:gap-8">
@@ -142,8 +142,8 @@ const Checkout = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid lg:grid-cols-3 gap-12 items-start">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12 items-start">
           {/* Main Content */}
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
@@ -394,8 +394,8 @@ const Checkout = () => {
               </div>
 
               <div className="flex justify-center gap-6 opacity-30 grayscale pointer-events-none">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/1200px-M-PESA_LOGO-01.svg.png" alt="Mpesa" className="h-6" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa" className="h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-text-muted">M-Pesa</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-text-muted">Visa</span>
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" alt="Mastercard" className="h-6" />
               </div>
             </div>

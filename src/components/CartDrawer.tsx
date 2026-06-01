@@ -71,7 +71,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                 items.map((item) => (
                   <div key={item.id} className="flex gap-4 group">
                     <div className="w-24 h-24 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.image} alt={item.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 flex flex-col">
                       <div className="flex justify-between gap-4 mb-1">

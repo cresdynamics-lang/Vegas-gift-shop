@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import OptimizedImage from './OptimizedImage';
 
 const categories = [
   { name: 'Men', image: '/products/product_2.jpeg', href: '/shop?category=Men%20Gifts' },
@@ -14,13 +15,15 @@ const categories = [
 const CategoryGrid = () => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-      {categories.map((cat) => (
+      {categories.map((cat, index) => (
         <Link key={cat.name} to={cat.href} className="group flex flex-col items-center">
           <div className="w-full aspect-square rounded-full overflow-hidden mb-3 border-2 border-gray-100 group-hover:border-red-600 transition-all p-1">
             <div className="w-full h-full rounded-full overflow-hidden bg-gray-50">
-              <img
+              <OptimizedImage
                 src={cat.image}
                 alt={cat.name}
+                priority={index < 4}
+                sizes="96px"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             </div>

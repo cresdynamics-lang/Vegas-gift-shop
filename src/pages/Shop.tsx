@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { products, categories } from '../data/products';
 import ProductSection from '../components/ProductSection';
+import OptimizedImage from '../components/OptimizedImage';
 import { Filter, X, ChevronDown, Search } from 'lucide-react';
 import { productMatchesTarget } from '../data/categoryMatchers';
+import RioGiftShopCategories from '../components/RioGiftShopCategories';
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -91,11 +93,13 @@ const Shop = () => {
   return (
     <div className="bg-brand-warm-white min-h-screen">
       {/* Header Section */}
-      <section className="relative py-28 lg:py-36 text-white overflow-hidden min-h-[420px] flex items-center">
+      <section className="relative py-10 sm:py-20 lg:py-36 text-white overflow-hidden min-h-[160px] sm:min-h-[280px] lg:min-h-[420px] flex items-center">
         <div className="absolute inset-0">
-          <img
+          <OptimizedImage
             src="/products/product_5.jpeg"
             alt=""
+            priority
+            sizes="100vw"
             className="w-full h-full object-cover object-center"
             aria-hidden="true"
           />
@@ -107,57 +111,64 @@ const Shop = () => {
             <span className="inline-block text-red-400 text-xs font-bold tracking-[0.25em] uppercase mb-4">
               Shop All Gifts
             </span>
-            <h1 className="text-4xl lg:text-6xl font-sans font-bold mb-5 leading-tight tracking-tight">
+            <h1 className="text-2xl sm:text-4xl lg:text-6xl font-sans font-bold mb-2 sm:mb-5 leading-tight tracking-tight">
               The Full Collection
             </h1>
-            <p className="text-white/75 text-lg leading-relaxed font-light max-w-xl">
+            <p className="text-white/75 text-sm sm:text-lg leading-relaxed font-light max-w-xl hidden sm:block">
               Discover our entire range of premium gifts, personalized sets, and corporate awards designed for moments that matter.
             </p>
           </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
+      {/* Mobile: Rio categories above products */}
+      <div className="lg:hidden max-w-7xl mx-auto px-3 pt-4 pb-2">
+        <RioGiftShopCategories
+          variant="home"
+          showAll
+          selectedCategory={selectedCategory}
+          onSelect={(name) => handleCategoryChange(name)}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-12">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar Filters (Desktop) */}
-          <aside className="hidden lg:block w-64 space-y-10 shrink-0">
-            <div>
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-brand-gold mb-6">Categories</h3>
-              <ul className="space-y-3">
-                <li>
-                  <button 
-                    onClick={() => handleCategoryChange('All')}
-                    className={`text-sm font-bold transition-colors ${selectedCategory === 'All' ? 'text-brand-crimson' : 'text-brand-charcoal hover:text-brand-crimson'}`}
-                  >
-                    All Collections
-                  </button>
-                </li>
-                {categories.map(cat => (
-                  <li key={cat.id} className="flex flex-col gap-2">
-                    <button 
-                      onClick={() => handleCategoryChange(cat.name)}
-                      className={`text-sm font-bold transition-colors text-left ${selectedCategory === cat.name && !selectedSubcategory ? 'text-brand-crimson' : 'text-brand-charcoal hover:text-brand-crimson'}`}
-                    >
-                      {cat.navLabel || cat.name}
-                    </button>
-                    {selectedCategory === cat.name && cat.subcategories.length > 0 && (
-                      <ul className="pl-4 border-l-2 border-brand-stone/30 space-y-2 mt-1">
-                        {cat.subcategories.map(sub => (
-                          <li key={sub}>
-                            <button 
-                              onClick={() => handleSubcategoryChange(cat.name, sub)}
-                              className={`text-xs transition-colors text-left ${selectedSubcategory === sub ? 'text-brand-crimson font-bold' : 'text-brand-text-muted hover:text-brand-crimson'}`}
-                            >
-                              {sub}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <aside className="hidden lg:block w-64 space-y-8 shrink-0">
+            <RioGiftShopCategories
+              showAll
+              selectedCategory={selectedCategory}
+              onSelect={(name) => handleCategoryChange(name)}
+            />
+
+            {selectedCategory !== 'All' && (() => {
+              const cat = categories.find((c) => c.name === selectedCategory);
+              if (!cat?.subcategories.length) return null;
+              return (
+                <div>
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-brand-gold mb-4">
+                    {cat.navLabel || cat.name}
+                  </h3>
+                  <ul className="pl-1 border-l-2 border-brand-stone/30 space-y-2 max-h-64 overflow-y-auto">
+                    {cat.subcategories.map((sub) => (
+                      <li key={sub}>
+                        <button
+                          type="button"
+                          onClick={() => handleSubcategoryChange(cat.name, sub)}
+                          className={`text-xs transition-colors text-left pl-3 ${
+                            selectedSubcategory === sub
+                              ? 'text-brand-crimson font-bold'
+                              : 'text-brand-text-muted hover:text-brand-crimson'
+                          }`}
+                        >
+                          {sub}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
 
             <div>
               <h3 className="text-[11px] font-bold uppercase tracking-widest text-brand-gold mb-6">Price Range</h3>
@@ -175,8 +186,8 @@ const Shop = () => {
           {/* Main Content */}
           <div className="flex-1">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-6 mb-12 bg-white p-6 rounded-2xl border border-brand-stone shadow-sm">
-              <div className="relative flex-1 min-w-[250px]">
+            <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-6 mb-6 sm:mb-12 bg-white p-3 sm:p-6 rounded-lg sm:rounded-2xl border border-brand-stone shadow-sm">
+              <div className="relative flex-1 min-w-0 w-full sm:min-w-[250px]">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-hint" size={18} />
                 <input 
                   type="text" 
@@ -214,10 +225,11 @@ const Shop = () => {
 
             {/* Product Grid */}
             {sortedProducts.length > 0 ? (
-              <ProductSection 
-                title={`${selectedCategory} Collection`}
-                products={sortedProducts} 
-                bgColor="bg-transparent !py-0"
+              <ProductSection
+                title={selectedCategory === 'All' ? 'All Products' : selectedCategory}
+                products={sortedProducts}
+                bgColor="bg-transparent"
+                compactTitle
               />
             ) : (
               <div className="text-center py-20 bg-white rounded-3xl border border-brand-stone border-dashed">
@@ -262,41 +274,45 @@ const Shop = () => {
                 </button>
               </div>
               
-              <div className="space-y-10 overflow-y-auto pb-10">
-                <div>
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-brand-gold mb-6">Categories</h3>
-                  <div className="flex flex-col gap-4">
-                    <button 
-                      onClick={() => { handleCategoryChange('All'); setIsMobileFilterOpen(false); }}
-                      className={`text-sm font-bold text-left ${selectedCategory === 'All' ? 'text-brand-crimson' : 'text-brand-charcoal'}`}
-                    >
-                      All Collections
-                    </button>
-                    {categories.map(cat => (
-                      <div key={cat.id} className="flex flex-col gap-2">
-                        <button 
-                          onClick={() => { handleCategoryChange(cat.name); setIsMobileFilterOpen(false); }}
-                          className={`text-sm font-bold text-left ${selectedCategory === cat.name && !selectedSubcategory ? 'text-brand-crimson' : 'text-brand-charcoal'}`}
-                        >
-                          {cat.navLabel || cat.name}
-                        </button>
-                        {selectedCategory === cat.name && cat.subcategories.length > 0 && (
-                          <div className="flex flex-col pl-4 border-l-2 border-brand-stone/30 gap-2 mt-1">
-                            {cat.subcategories.map(sub => (
-                              <button 
-                                key={sub}
-                                onClick={() => { handleSubcategoryChange(cat.name, sub); setIsMobileFilterOpen(false); }}
-                                className={`text-xs text-left ${selectedSubcategory === sub ? 'text-brand-crimson font-bold' : 'text-brand-text-muted'}`}
-                              >
-                                {sub}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+              <div className="space-y-6 overflow-y-auto pb-10">
+                <RioGiftShopCategories
+                  showAll
+                  selectedCategory={selectedCategory}
+                  onSelect={(name) => {
+                    handleCategoryChange(name);
+                    if (name === 'All') setIsMobileFilterOpen(false);
+                  }}
+                />
+                {selectedCategory !== 'All' && (() => {
+                  const cat = categories.find((c) => c.name === selectedCategory);
+                  if (!cat?.subcategories.length) return null;
+                  return (
+                    <div>
+                      <h3 className="text-[11px] font-bold uppercase tracking-widest text-brand-gold mb-3">
+                        Subcategories
+                      </h3>
+                      <div className="flex flex-col pl-3 border-l-2 border-brand-stone/30 gap-2 max-h-48 overflow-y-auto">
+                        {cat.subcategories.map((sub) => (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => {
+                              handleSubcategoryChange(cat.name, sub);
+                              setIsMobileFilterOpen(false);
+                            }}
+                            className={`text-xs text-left ${
+                              selectedSubcategory === sub
+                                ? 'text-brand-crimson font-bold'
+                                : 'text-brand-text-muted'
+                            }`}
+                          >
+                            {sub}
+                          </button>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="mt-auto pt-8 border-t border-brand-stone">

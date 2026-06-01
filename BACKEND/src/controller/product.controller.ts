@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
+import { upsertStorefrontProduct } from '../lib/productSync';
+import { ReviewStatus } from '../../prisma/generated/client';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -33,12 +35,39 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 };
 
+export const syncStorefrontProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const body = req.body;
+
+    if (!body?.name || body.price == null || !body.image || !body.category) {
+      return res.status(400).json({ error: 'Missing required product fields' });
+    }
+    if (body.id && body.id !== id) {
+      return res.status(400).json({ error: 'Product ID mismatch' });
+    }
+
+    const product = await upsertStorefrontProduct({ ...body, id });
+    res.json(product);
+  } catch (error) {
+    console.error('syncStorefrontProduct:', error);
+    res.status(500).json({ error: 'Failed to sync product' });
+  }
+};
+
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { category: true, reviews: true }
+      include: {
+        category: true,
+        reviews: {
+          where: { status: ReviewStatus.APPROVED },
+          orderBy: { createdAt: 'desc' },
+          include: { user: { select: { name: true, email: true } } },
+        },
+      },
     });
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json(product);
@@ -94,18 +123,27 @@ export const deleteCategory = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, description, price, oldPrice, image, categoryId, isSale, isNew, stock } = req.body;
+    const {
+      name, description, shortDescription, price, oldPrice, image, images,
+      categoryId, isSale, isNew, stock, packageSections, attributes, features, enableCustomization,
+    } = req.body;
     const product = await prisma.product.create({
       data: {
         name,
         description,
+        shortDescription: shortDescription || null,
         price: parseFloat(price),
         oldPrice: oldPrice ? parseFloat(oldPrice) : null,
         image,
+        images: images ?? undefined,
         categoryId,
         isSale: Boolean(isSale),
         isNew: Boolean(isNew),
-        stock: parseInt(stock) || 0
+        stock: parseInt(stock) || 0,
+        packageSections: packageSections ?? undefined,
+        attributes: attributes ?? undefined,
+        features: Array.isArray(features) ? features : [],
+        enableCustomization: enableCustomization !== false,
       }
     });
     res.status(201).json(product);
@@ -117,19 +155,28 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description, price, oldPrice, image, categoryId, isSale, isNew, stock } = req.body;
+    const {
+      name, description, shortDescription, price, oldPrice, image, images,
+      categoryId, isSale, isNew, stock, packageSections, attributes, features, enableCustomization,
+    } = req.body;
     const product = await prisma.product.update({
       where: { id },
       data: {
         name,
         description,
+        shortDescription: shortDescription ?? undefined,
         price: parseFloat(price),
         oldPrice: oldPrice ? parseFloat(oldPrice) : null,
         image,
+        images: images ?? undefined,
         categoryId,
         isSale: Boolean(isSale),
         isNew: Boolean(isNew),
-        stock: parseInt(stock) || 0
+        stock: parseInt(stock) || 0,
+        packageSections: packageSections ?? undefined,
+        attributes: attributes ?? undefined,
+        features: Array.isArray(features) ? features : undefined,
+        enableCustomization: enableCustomization !== false,
       }
     });
     res.json(product);

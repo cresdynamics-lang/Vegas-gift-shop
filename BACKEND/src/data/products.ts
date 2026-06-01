@@ -1,3 +1,13 @@
+export type ProductPackageSection = {
+  title: string;
+  items: string[];
+};
+
+export type ProductAttribute = {
+  name: string;
+  values: string[];
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -6,10 +16,15 @@ export type Product = {
   rating: number;
   reviews: number;
   image: string;
+  images?: string[];
   category: string;
   isNew?: boolean;
   isSale?: boolean;
   description: string;
+  shortDescription?: string;
+  packageSections?: ProductPackageSection[];
+  attributes?: ProductAttribute[];
+  enableCustomization?: boolean;
   features?: string[];
 };
 
@@ -122,19 +137,6 @@ export const products: Product[] = [
     
     isNew: true,
     description: "A stunning crystal star trophy designed to show deep appreciation for outstanding achievements."
-  },
-  {
-    id: "crystal-office-desk-organizer",
-    name: "Crystal Office Desk Organizer",
-    price: 3500,
-    
-    rating: 4,
-    reviews: 12,
-    image: "/hero.png",
-    category: "Awards & Trophies",
-    
-    
-    description: "A sophisticated crystal desk organizer that doubles as a prestigious office accessory."
   },
   {
     id: "elegant-golden-base-crystal-trophy",

@@ -150,6 +150,11 @@ exports.Prisma.ProductScalarFieldEnum = {
   isSale: 'isSale',
   categoryId: 'categoryId',
   features: 'features',
+  packageSections: 'packageSections',
+  images: 'images',
+  attributes: 'attributes',
+  shortDescription: 'shortDescription',
+  enableCustomization: 'enableCustomization',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -159,6 +164,12 @@ exports.Prisma.OrderScalarFieldEnum = {
   userId: 'userId',
   total: 'total',
   status: 'status',
+  itemsSnapshot: 'itemsSnapshot',
+  shippingName: 'shippingName',
+  shippingAddress: 'shippingAddress',
+  shippingCity: 'shippingCity',
+  shippingPhone: 'shippingPhone',
+  paymentMethod: 'paymentMethod',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -175,6 +186,9 @@ exports.Prisma.ReviewScalarFieldEnum = {
   id: 'id',
   rating: 'rating',
   comment: 'comment',
+  reviewerName: 'reviewerName',
+  reviewerEmail: 'reviewerEmail',
+  status: 'status',
   userId: 'userId',
   productId: 'productId',
   createdAt: 'createdAt',
@@ -188,12 +202,18 @@ exports.Prisma.StoreSettingsScalarFieldEnum = {
   shipping: 'shipping',
   branding: 'branding',
   notifications: 'notifications',
+  googleReviews: 'googleReviews',
   updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.JsonNullValueInput = {
@@ -229,6 +249,12 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   SHIPPED: 'SHIPPED',
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED'
+};
+
+exports.ReviewStatus = exports.$Enums.ReviewStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
 };
 
 exports.Prisma.ModelName = {

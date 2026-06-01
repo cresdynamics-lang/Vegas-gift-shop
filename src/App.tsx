@@ -2,11 +2,15 @@ import { Routes, Route } from 'react-router-dom';
 import TopBar from './components/TopBar';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import WhatsAppFloat from './components/WhatsAppFloat';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
 import Account from './pages/Account';
+import InfoPage from './pages/InfoPage';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 
 import AdminLayout from './layouts/AdminLayout';
 import AdminLogin from './pages/admin/Login';
@@ -23,7 +27,7 @@ import { Settings } from './pages/admin/Settings';
 
 function App() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <Routes>
         {/* Main Site Routes */}
         <Route
@@ -39,9 +43,19 @@ function App() {
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/account" element={<Account />} />
+                  <Route path="/about" element={<InfoPage pageId="about" />} />
+                  <Route path="/shipping" element={<InfoPage pageId="shipping" />} />
+                  <Route path="/returns" element={<InfoPage pageId="returns" />} />
+                  <Route path="/privacy-policy" element={<InfoPage pageId="privacy" />} />
+                  <Route path="/terms" element={<InfoPage pageId="terms" />} />
+                  <Route path="/contact" element={<InfoPage pageId="contact" />} />
+                  <Route path="/faq" element={<InfoPage pageId="faq" />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
                 </Routes>
               </main>
               <Footer />
+              <WhatsAppFloat />
             </>
           }
         />

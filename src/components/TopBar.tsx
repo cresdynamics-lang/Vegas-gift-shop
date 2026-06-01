@@ -21,10 +21,13 @@ const TopBar = () => {
   const accent = settings?.branding.accentColor || '#dc2626';
 
   return (
-    <div className="text-white py-2 px-4 border-b text-sm" style={{ backgroundColor: accent, borderColor: accent }}>
-      <div className="max-w-7xl mx-auto flex justify-between items-center w-full">
-        <div>{message}</div>
-        <div className="hidden md:block">{subMessage}</div>
+    <div
+      className="text-white py-1.5 sm:py-2 px-3 sm:px-4 border-b text-[11px] sm:text-sm leading-snug"
+      style={{ backgroundColor: accent, borderColor: accent }}
+    >
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-4 w-full text-center sm:text-left">
+        <div className="truncate">{message}</div>
+        <div className="truncate opacity-90">{subMessage}</div>
       </div>
     </div>
   );

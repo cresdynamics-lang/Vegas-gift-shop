@@ -37,7 +37,12 @@ export default function AdminLogin() {
       login(data.user, data.token);
       navigate('/admin/dashboard');
     } catch (err: any) {
-      setError(err.message);
+      const msg = err?.message || '';
+      if (msg === 'Failed to fetch' || msg.includes('NetworkError')) {
+        setError('Cannot reach the API server. Start the backend with: cd BACKEND && npm run dev');
+      } else {
+        setError(msg || 'Login failed');
+      }
     } finally {
       setIsLoading(false);
     }

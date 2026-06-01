@@ -6,6 +6,7 @@ import {
   Palette,
   ShieldCheck,
   Bell,
+  Star,
   Save,
   Loader2,
   Plus,
@@ -16,15 +17,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { API_URL } from '../../config';
 import { useAuthStore } from '../../store/useAuthStore';
-import { DEFAULT_SETTINGS, type StoreSettings, type ShippingZone } from '../../types/settings';
+import {
+  DEFAULT_SETTINGS,
+  type StoreSettings,
+  type ShippingZone,
+  type GoogleReview,
+} from '../../types/settings';
 
-type TabId = 'general' | 'payments' | 'shipping' | 'branding' | 'security' | 'notifications';
+type TabId =
+  | 'general'
+  | 'payments'
+  | 'shipping'
+  | 'branding'
+  | 'googleReviews'
+  | 'security'
+  | 'notifications';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'general', label: 'General Info', icon: Globe },
   { id: 'payments', label: 'Payments', icon: CreditCard },
   { id: 'shipping', label: 'Shipping & Delivery', icon: Truck },
   { id: 'branding', label: 'Store Branding', icon: Palette },
+  { id: 'googleReviews', label: 'Google Reviews', icon: Star },
   { id: 'security', label: 'Security & Access', icon: ShieldCheck },
   { id: 'notifications', label: 'Notifications', icon: Bell },
 ];
@@ -195,6 +209,50 @@ export const Settings: React.FC = () => {
       shipping: {
         ...s.shipping,
         zones: s.shipping.zones.filter((z) => z.id !== id),
+      },
+    }));
+
+  const updateGoogleReviews = (
+    key: keyof StoreSettings['googleReviews'],
+    value: boolean | string | number | GoogleReview[]
+  ) => setSettings((s) => ({ ...s, googleReviews: { ...s.googleReviews, [key]: value } }));
+
+  const updateGoogleReview = (id: string, field: keyof GoogleReview, value: string | number) =>
+    setSettings((s) => ({
+      ...s,
+      googleReviews: {
+        ...s.googleReviews,
+        reviews: s.googleReviews.reviews.map((r) =>
+          r.id === id ? { ...r, [field]: value } : r
+        ),
+      },
+    }));
+
+  const addGoogleReview = () =>
+    setSettings((s) => ({
+      ...s,
+      googleReviews: {
+        ...s.googleReviews,
+        reviews: [
+          ...s.googleReviews.reviews,
+          {
+            id: crypto.randomUUID(),
+            author: 'Customer',
+            rating: 5,
+            text: '',
+            date: new Date().toISOString().slice(0, 10),
+            source: 'google' as const,
+          },
+        ],
+      },
+    }));
+
+  const removeGoogleReview = (id: string) =>
+    setSettings((s) => ({
+      ...s,
+      googleReviews: {
+        ...s.googleReviews,
+        reviews: s.googleReviews.reviews.filter((r) => r.id !== id),
       },
     }));
 
@@ -424,6 +482,138 @@ export const Settings: React.FC = () => {
                 </div>
                 <div className="p-4 rounded-2xl text-white text-sm" style={{ backgroundColor: settings.branding.accentColor }}>
                   Preview: {settings.branding.topBarMessage}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* GOOGLE REVIEWS */}
+          {activeTab === 'googleReviews' && (
+            <Card className="border border-gray-100 shadow-sm rounded-[32px]">
+              <CardHeader className="p-8">
+                <CardTitle className="text-xl font-serif">Google Reviews</CardTitle>
+                <CardDescription>
+                  Shown on product pages above store reviews. Update with your real Google Business reviews.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-8 pt-0 space-y-6">
+                <Toggle
+                  checked={settings.googleReviews.enabled}
+                  onChange={(v) => updateGoogleReviews('enabled', v)}
+                  label="Show Google reviews on product pages"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Place name</label>
+                    <input
+                      className={inputClass}
+                      value={settings.googleReviews.placeName}
+                      onChange={(e) => updateGoogleReviews('placeName', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Google Maps URL</label>
+                    <input
+                      className={inputClass}
+                      value={settings.googleReviews.mapsUrl}
+                      onChange={(e) => updateGoogleReviews('mapsUrl', e.target.value)}
+                      placeholder="https://www.google.com/maps/..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Aggregate rating (1–5)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={5}
+                      step={0.1}
+                      className={inputClass}
+                      value={settings.googleReviews.aggregateRating}
+                      onChange={(e) =>
+                        updateGoogleReviews('aggregateRating', parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Total reviews on Google</label>
+                    <input
+                      type="number"
+                      min={0}
+                      className={inputClass}
+                      value={settings.googleReviews.totalReviews}
+                      onChange={(e) =>
+                        updateGoogleReviews('totalReviews', parseInt(e.target.value, 10) || 0)
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-gray-900">Featured reviews</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addGoogleReview}
+                    className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                  >
+                    <Plus size={14} className="mr-1" />
+                    Add review
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {settings.googleReviews.reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="p-5 bg-gray-50 border border-gray-100 rounded-2xl space-y-3"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                          Review
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeGoogleReview(review.id)}
+                          className="text-red-600 hover:text-red-800 p-1"
+                          aria-label="Remove review"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <input
+                          className={inputClass}
+                          value={review.author}
+                          onChange={(e) => updateGoogleReview(review.id, 'author', e.target.value)}
+                          placeholder="Author"
+                        />
+                        <input
+                          type="number"
+                          min={1}
+                          max={5}
+                          className={inputClass}
+                          value={review.rating}
+                          onChange={(e) =>
+                            updateGoogleReview(review.id, 'rating', parseInt(e.target.value, 10) || 5)
+                          }
+                          placeholder="Rating"
+                        />
+                        <input
+                          type="date"
+                          className={inputClass}
+                          value={review.date}
+                          onChange={(e) => updateGoogleReview(review.id, 'date', e.target.value)}
+                        />
+                      </div>
+                      <textarea
+                        rows={3}
+                        className={inputClass}
+                        value={review.text}
+                        onChange={(e) => updateGoogleReview(review.id, 'text', e.target.value)}
+                        placeholder="Review text"
+                      />
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

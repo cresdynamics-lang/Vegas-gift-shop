@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { useCustomerStore } from '../store/useCustomerStore';
 import CartDrawer from './CartDrawer';
+import RioGiftShopCategories from './RioGiftShopCategories';
 import { motion, AnimatePresence } from 'framer-motion';
 import { categories, type Category } from '../data/products';
 
@@ -71,17 +72,19 @@ const Navbar = () => {
   };
 
   return (
-    <header className="w-full relative z-[60] bg-white border-b border-gray-100 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-black rounded flex items-center justify-center">
-            <span className="text-white font-serif font-bold text-xl">V</span>
+    <header className="w-full relative z-[60] bg-white border-b border-gray-100 shadow-sm sticky top-0">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-4 flex justify-between items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 min-w-0 shrink max-w-[55%] sm:max-w-none">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-black rounded flex items-center justify-center shrink-0">
+            <span className="text-white font-serif font-bold text-base sm:text-xl">V</span>
           </div>
-          <div className="flex flex-col -gap-1">
-            <h1 className="text-xl font-bold tracking-tight text-black leading-none">
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-xs sm:text-xl font-bold tracking-tight text-black leading-tight truncate">
               VEGAS <span className="text-red-600 italic">GIFT</span> SHOP
             </h1>
-            <span className="text-[10px] font-bold tracking-[0.3em] text-gray-500 uppercase">Luxury Gift Boutique</span>
+            <span className="hidden sm:block text-[10px] font-bold tracking-[0.3em] text-gray-500 uppercase truncate">
+              Luxury Gift Boutique
+            </span>
           </div>
         </Link>
 
@@ -96,8 +99,19 @@ const Navbar = () => {
           </button>
         </div>
 
-        <div className="flex items-center gap-6">
-          <Link to="/account" className="hidden md:flex items-center gap-2 text-gray-700 hover:text-red-600">
+        <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+          <a
+            href="tel:+254792943753"
+            className="lg:hidden p-2 text-gray-600 hover:text-[#C7447E]"
+            aria-label="Call us"
+          >
+            <Phone size={22} />
+          </a>
+
+          <Link
+            to="/account"
+            className="hidden md:flex items-center gap-2 text-gray-700 hover:text-red-600"
+          >
             <User size={20} />
             <span className="font-bold text-sm">
               {isAuthenticated && customer?.name ? customer.name.split(' ')[0] : 'My Account'}
@@ -106,22 +120,30 @@ const Navbar = () => {
 
           <button
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-3 text-gray-700 hover:text-red-600 group"
+            className="flex items-center gap-1.5 sm:gap-3 text-gray-700 hover:text-[#C7447E] group min-w-0"
           >
-            <div className="text-right hidden sm:block">
-              <div className="text-xs text-gray-500">Cart</div>
-              <div className="font-bold text-sm">KShs {getTotal().toLocaleString()}</div>
+            <div className="text-right min-w-0">
+              <div className="text-[10px] sm:text-xs text-gray-500 leading-none">KShs{getTotal().toLocaleString()}</div>
+              <div className="font-bold text-[10px] sm:text-sm leading-tight whitespace-nowrap">
+                <span className="sm:hidden">{itemCount} Cart</span>
+                <span className="hidden sm:inline">Cart</span>
+              </div>
             </div>
-            <div className="relative bg-gray-100 p-3 rounded-full group-hover:bg-red-50 transition-colors">
-              <ShoppingCart size={24} />
-              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+            <div className="relative bg-gray-100 p-2 sm:p-3 rounded-full group-hover:bg-pink-50 transition-colors shrink-0">
+              <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="absolute -top-1.5 -right-1.5 bg-[#C7447E] text-white text-[9px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white px-0.5">
                 {itemCount}
               </span>
             </div>
           </button>
 
-          <button className="lg:hidden text-gray-600 p-1" onClick={() => setIsMenuOpen(true)}>
-            <Menu size={28} />
+          <button
+            type="button"
+            className="lg:hidden text-gray-600 p-1.5"
+            onClick={() => setIsMenuOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={26} />
           </button>
         </div>
       </div>
@@ -175,14 +197,18 @@ const Navbar = () => {
         </div>
       </nav>
 
-      <div className="md:hidden px-4 pb-4">
+      <div className="md:hidden px-3 pb-2.5 border-t border-gray-50">
         <div className="relative">
           <input
-            type="text"
-            placeholder="Products search..."
-            className="w-full border-2 border-gray-200 rounded-full py-2 px-4 pr-10 focus:outline-none focus:border-red-600 text-sm"
+            type="search"
+            placeholder="Products search"
+            className="w-full border border-gray-300 rounded-sm py-2 px-3 pr-10 focus:outline-none focus:border-[#C7447E] text-sm bg-gray-50"
           />
-          <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 p-1"
+            aria-label="Search"
+          >
             <Search size={18} />
           </button>
         </div>
@@ -203,16 +229,20 @@ const Navbar = () => {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              className="fixed inset-y-0 left-0 w-full max-w-xs bg-white z-[101] flex flex-col shadow-2xl"
+              className="fixed inset-y-0 left-0 w-full max-w-[min(100%,320px)] bg-white z-[101] flex flex-col shadow-2xl"
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                <span className="font-bold text-lg">Menu</span>
+              <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-gray-50">
+                <span className="font-bold text-base">Browse</span>
                 <button onClick={() => setIsMenuOpen(false)} className="p-2 text-gray-500 hover:text-black">
-                  <X size={24} />
+                  <X size={22} />
                 </button>
               </div>
 
-              <div className="flex flex-col overflow-y-auto p-4 gap-1">
+              <div className="p-3 border-b border-gray-100">
+                <RioGiftShopCategories variant="home" className="rounded-xl" />
+              </div>
+
+              <div className="flex flex-col overflow-y-auto p-3 gap-0.5 flex-1">
                 {navItems.map((category) => (
                   <div key={category.id} className="border-b border-gray-50 pb-2">
                     <div

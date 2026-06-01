@@ -1,6 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@100..900&family=DM+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+.safe-bottom {
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
 @theme {
   --color-brand-charcoal: #1C1C1E;
   --color-brand-crimson: #8B1428;
@@ -171,4 +184,34 @@
 
 .bg-luxury-light {
   background: linear-gradient(135deg, #FAF8F5 0%, #EDE9E4 100%);
+}
+
+/* Google testimonials — infinite scroll right to left */
+@keyframes testimonial-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.testimonial-marquee-track {
+  animation: testimonial-marquee 50s linear infinite;
+  will-change: transform;
+}
+
+.testimonial-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 80rem;
+    margin: 0 auto;
+    width: 100% !important;
+  }
 }

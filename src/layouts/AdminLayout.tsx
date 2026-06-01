@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
-import { LayoutDashboard, Package, Tags, ShoppingCart, Users, Settings, LogOut, Menu, X, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Package, Tags, ShoppingCart, Users, Settings, LogOut, Menu, X, ShieldAlert, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+function formatRoleLabel(role?: string): string {
+  if (!role) return 'Admin';
+  const labels: Record<string, string> = {
+    SUPER_ADMIN: 'Admin',
+    MANAGER: 'Manager',
+    SALES: 'Sales',
+    ACCOUNTANT: 'Accountant',
+  };
+  return labels[role] ?? role.replace(/_/g, ' ');
+}
 
 export default function AdminLayout() {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -19,6 +30,7 @@ export default function AdminLayout() {
     { name: 'Categories', href: '/admin/categories', icon: Tags },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Customers', href: '/admin/customers', icon: Users },
+    { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
@@ -101,7 +113,7 @@ export default function AdminLayout() {
                   <div className="ml-3 w-full flex justify-between items-center">
                     <div className="flex flex-col">
                       <p className="text-sm font-bold text-white">{user?.name}</p>
-                      <p className="text-[10px] font-medium text-red-400 uppercase tracking-wider">{user?.role?.replace('_', ' ')}</p>
+                      <p className="text-[10px] font-medium text-red-400 uppercase tracking-wider">{formatRoleLabel(user?.role)}</p>
                     </div>
                     <button
                       onClick={logout}
@@ -139,7 +151,7 @@ export default function AdminLayout() {
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex flex-col items-end mr-2">
             <span className="text-sm font-bold text-white">{user?.name}</span>
-            <span className="text-[10px] font-medium text-red-400 uppercase tracking-wider">{user?.role?.replace('_', ' ')}</span>
+            <span className="text-[10px] font-medium text-red-400 uppercase tracking-wider">{formatRoleLabel(user?.role)}</span>
           </div>
           <button
             onClick={logout}
@@ -155,7 +167,7 @@ export default function AdminLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 pt-16">
           <div className="py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+            <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={location.pathname}

@@ -37,6 +37,29 @@ export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction
   next();
 };
 
+/** Attach user when Bearer token is valid; otherwise continue as guest. */
+export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'vegas_secret_key_2026') as {
+      id: string;
+      role: string;
+      name?: string;
+      email?: string;
+    };
+    req.user = decoded;
+  } catch {
+    /* invalid token — treat as guest */
+  }
+  next();
+};
+
 export const requireCustomer = (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
     return res.status(401).json({ error: 'Access denied.' });

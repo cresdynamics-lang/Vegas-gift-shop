@@ -80,7 +80,7 @@ export function productMatchesTarget(
   const searchText = `${product.name} ${product.description || ''}`.toLowerCase();
   const t = normalizeCategory(target);
 
-  // Greeting Cards — physical greeting cards only, not holders/wallets
+  // Greeting Cards, physical greeting cards only, not holders/wallets
   if (target === 'Greeting Cards') {
     if (/card holder|business card holder|wallet|credit card slot/i.test(searchText)) return false;
     if (
@@ -100,7 +100,7 @@ export function productMatchesTarget(
     return false;
   }
 
-  // Gift Cards — category match, exclude holders
+  // Gift Cards, category match, exclude holders
   if (target === 'Gift Cards') {
     if (/card holder|business card holder/i.test(searchText)) return false;
     return allCats.some((c) => normalizeCategory(c).includes('giftcard'));
