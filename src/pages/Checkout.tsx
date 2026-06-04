@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, CreditCard, Smartphone, ShieldCheck, ShoppingBag, ArrowLeft, Check, Lock, Gift } from 'lucide-react';
+import { ChevronRight, CreditCard, Smartphone, ShieldCheck, ShoppingBag, ArrowLeft, Check, Lock, Gift, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { useCustomerStore } from '../store/useCustomerStore';
 import { API_URL } from '../config';
+import { buildPurchaseEventId, getCatalogProductId, trackPurchase } from '../tracking';
+import {
+  buildCustomerOrderConfirmationUrl,
+  buildOrderReceivedMessage,
+} from '../utils/whatsapp';
 
 const steps = [
   { id: 1, name: 'Information' },
@@ -15,6 +20,9 @@ const steps = [
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  const [whatsappSent, setWhatsappSent] = useState(false);
+  const [whatsappFallbackUrl, setWhatsappFallbackUrl] = useState<string | null>(null);
   const { items, getTotal, clearCart } = useCartStore();
   const subtotal = getTotal();
   const { user, token, isAuthenticated } = useCustomerStore();
@@ -72,41 +80,99 @@ const Checkout = () => {
     setIsSubmitting(true);
     const grandTotal = subtotal + shippingCost(formData.shippingMethod);
 
-    if (isAuthenticated && token) {
-      try {
-        await fetch(`${API_URL}/api/auth/orders`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            items: items.map((item) => ({
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              image: item.image,
-            })),
-            total: grandTotal,
-            shippingName: `${formData.firstName} ${formData.lastName}`.trim(),
-            shippingAddress: formData.address,
-            shippingCity: formData.city,
-            shippingPhone: formData.phone,
-            paymentMethod: formData.paymentMethod,
-          }),
-        });
-      } catch {
-        // Order still shows success UI; customer can contact support
-      }
-    }
+    const trackingEventId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? `purchase-${crypto.randomUUID()}`
+        : `purchase-${Date.now()}`;
 
-    setIsSubmitting(false);
-    setCurrentStep(4);
-    setTimeout(() => {
-      clearCart();
-      navigate(isAuthenticated ? '/account' : '/');
-    }, 5000);
+    const orderPayload = {
+      items: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        options: item.options,
+      })),
+      total: grandTotal,
+      shippingName: `${formData.firstName} ${formData.lastName}`.trim(),
+      shippingAddress: formData.address,
+      shippingCity: formData.city,
+      shippingPhone: formData.phone,
+      paymentMethod: formData.paymentMethod,
+      shippingMethod: formData.shippingMethod,
+      customerEmail: formData.email,
+      trackingEventId,
+      eventSourceUrl: window.location.href,
+    };
+
+    try {
+      const url =
+        isAuthenticated && token
+          ? `${API_URL}/api/auth/orders`
+          : `${API_URL}/api/orders`;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (isAuthenticated && token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Could not place order. Please try again.');
+      }
+
+      const data = await response.json();
+      const orderId = String(data.id || '');
+      const sent = Boolean(data.whatsappSent);
+      const customerName = `${formData.firstName} ${formData.lastName}`.trim();
+      const eventId = String(data.trackingEventId || trackingEventId);
+
+      if (orderId) {
+        trackPurchase({
+          orderId,
+          total: grandTotal,
+          eventId: String(data.trackingEventId || eventId || buildPurchaseEventId(orderId)),
+          items: items.map((item) => ({
+            id: getCatalogProductId(item.id),
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+        });
+      }
+
+      setPlacedOrderId(orderId || null);
+      setWhatsappSent(sent);
+
+      if (orderId && formData.phone.trim()) {
+        const message = buildOrderReceivedMessage({
+          orderId,
+          total: grandTotal,
+          customerName,
+        });
+        setWhatsappFallbackUrl(
+          buildCustomerOrderConfirmationUrl(formData.phone.trim(), message)
+        );
+      }
+
+      setCurrentStep(4);
+      setTimeout(() => {
+        clearCart();
+        navigate(isAuthenticated ? '/account' : '/');
+      }, 8000);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not place order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -306,14 +372,40 @@ const Checkout = () => {
                     <Check size={48} strokeWidth={3} />
                   </div>
                   <h2 className="text-4xl font-bold text-brand-charcoal mb-6 tracking-tight">Gift Confirmed</h2>
-                  <p className="text-brand-text-muted text-lg mb-10 max-w-md mx-auto leading-relaxed">
+                  <p className="text-brand-text-muted text-lg mb-8 max-w-md mx-auto leading-relaxed">
                     Thank you for choosing <span className="text-brand-charcoal font-bold">Vegas Gift Shop</span>. Your luxury gift is being prepared with excellence.
                   </p>
-                  <div className="p-6 bg-brand-warm-white rounded-2xl border border-brand-stone inline-block mb-10">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-text-hint mb-1">Order Reference</p>
-                    <p className="text-xl font-bold text-brand-charcoal tracking-widest">VEGAS-98432-XYZ</p>
-                  </div>
-                  <p className="text-xs text-brand-text-hint italic">Redirecting to homepage...</p>
+                  {placedOrderId && (
+                    <div className="p-6 bg-brand-warm-white rounded-2xl border border-brand-stone inline-block mb-8">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-text-hint mb-1">Order Reference</p>
+                      <p className="text-xl font-bold text-brand-charcoal tracking-widest">
+                        #{placedOrderId.slice(0, 8).toUpperCase()}
+                      </p>
+                    </div>
+                  )}
+                  {whatsappSent && formData.phone && (
+                    <p className="text-sm text-[#2d8a2d] font-medium mb-6 flex items-center justify-center gap-2">
+                      <MessageCircle size={18} />
+                      Confirmation sent to your WhatsApp ({formData.phone})
+                    </p>
+                  )}
+                  {!whatsappSent && whatsappFallbackUrl && (
+                    <div className="mb-8 max-w-sm mx-auto">
+                      <p className="text-sm text-brand-text-muted mb-4">
+                        Open WhatsApp to save your order confirmation on your phone.
+                      </p>
+                      <a
+                        href={whatsappFallbackUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#25D366] text-white font-bold text-sm hover:bg-[#20bd5a] transition-colors"
+                      >
+                        <MessageCircle size={18} />
+                        Open order confirmation on WhatsApp
+                      </a>
+                    </div>
+                  )}
+                  <p className="text-xs text-brand-text-hint italic">Redirecting shortly...</p>
                 </motion.div>
               )}
             </AnimatePresence>

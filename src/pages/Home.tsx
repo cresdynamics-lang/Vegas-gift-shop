@@ -120,7 +120,8 @@ const Home = () => {
                     src={post.image}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     alt=""
-                    loading="lazy"
+                    priority
+                    showPlaceholder={false}
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </Link>
@@ -183,7 +184,8 @@ const Home = () => {
                   <OptimizedImage
                     src="/products/product_3.jpeg"
                     alt="Awards & trophies"
-                    loading="lazy"
+                    priority
+                    showPlaceholder={false}
                     sizes="50vw"
                     className="w-full h-full object-cover"
                   />
@@ -192,7 +194,8 @@ const Home = () => {
                   <OptimizedImage
                     src="/gifts for women 1.jpg"
                     alt="Luxury gifts"
-                    loading="lazy"
+                    priority
+                    showPlaceholder={false}
                     sizes="50vw"
                     className="w-full h-full object-cover"
                   />
@@ -203,7 +206,8 @@ const Home = () => {
                   <OptimizedImage
                     src="/products/product_16.jpeg"
                     alt="Watches"
-                    loading="lazy"
+                    priority
+                    showPlaceholder={false}
                     sizes="50vw"
                     className="w-full h-full object-cover"
                   />
@@ -212,7 +216,8 @@ const Home = () => {
                   <OptimizedImage
                     src="/products/product_4.jpeg"
                     alt="Corporate gifts"
-                    loading="lazy"
+                    priority
+                    showPlaceholder={false}
                     sizes="50vw"
                     className="w-full h-full object-cover"
                   />

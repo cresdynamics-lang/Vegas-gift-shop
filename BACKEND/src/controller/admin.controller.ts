@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
+import { OrderStatus } from '../../prisma/generated/client';
+import { paramId } from '../lib/requestParams';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
@@ -22,15 +24,39 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 export const getOrders = async (req: Request, res: Response) => {
   try {
     const orders = await prisma.order.findMany({
-      include: { 
-        user: { select: { name: true, email: true } }, 
-        items: { include: { product: { select: { name: true } } } } 
+      include: {
+        user: { select: { name: true, email: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
     res.json(orders);
   } catch (error) {
+    console.error('Get orders error:', error);
     res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+};
+
+export const updateOrderStatus = async (req: Request, res: Response) => {
+  try {
+    const id = paramId(req, 'id');
+    const { status } = req.body as { status?: OrderStatus };
+
+    if (!status || !Object.values(OrderStatus).includes(status)) {
+      return res.status(400).json({ error: 'Invalid order status' });
+    }
+
+    const order = await prisma.order.update({
+      where: { id },
+      data: { status },
+      include: {
+        user: { select: { name: true, email: true } },
+      },
+    });
+
+    res.json(order);
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ error: 'Failed to update order' });
   }
 };
 

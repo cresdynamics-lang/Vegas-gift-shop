@@ -682,6 +682,11 @@ export const Settings: React.FC = () => {
                 <Toggle checked={settings.notifications.orderEmailEnabled} onChange={(v) => updateNotifications('orderEmailEnabled', v)} label="Email on New Orders" />
                 <Toggle checked={settings.notifications.lowStockEmailEnabled} onChange={(v) => updateNotifications('lowStockEmailEnabled', v)} label="Email on Low Stock" />
                 <Toggle checked={settings.notifications.smsEnabled} onChange={(v) => updateNotifications('smsEnabled', v)} label="SMS Notifications" />
+                <Toggle
+                  checked={settings.notifications.whatsappOrderConfirmationEnabled ?? true}
+                  onChange={(v) => updateNotifications('whatsappOrderConfirmationEnabled', v)}
+                  label="WhatsApp order confirmation to customer"
+                />
                 <div className="space-y-2">
                   <label className={labelClass}>Admin Notification Email</label>
                   <input type="email" className={inputClass} value={settings.notifications.adminNotificationEmail} onChange={(e) => updateNotifications('adminNotificationEmail', e.target.value)} />

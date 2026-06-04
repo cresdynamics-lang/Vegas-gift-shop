@@ -1,8 +1,11 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import type { Product } from '../data/products';
 import ProductCardImage from './ProductCardImage';
 import { formatDisplayText } from '../utils/formatText';
+import { useInView } from '../hooks/useInView';
+import { IMAGE_WIDTH, preloadProductImages } from '../utils/imageUtils';
 
 interface RelatedProductsProps {
   products: Product[];
@@ -11,11 +14,26 @@ interface RelatedProductsProps {
 /** Rio / WooCommerce-style related products grid below product tabs. */
 const RelatedProducts = ({ products }: RelatedProductsProps) => {
   const addItem = useCartStore((state) => state.addItem);
+  const { ref, inView } = useInView<HTMLElement>({ rootMargin: '320px' });
+
+  useEffect(() => {
+    if (!inView || !products.length) return;
+    const sources = products.flatMap((p) => {
+      const list =
+        p.images && p.images.length > 0 ? p.images : p.image ? [p.image] : [];
+      return list.slice(0, 2);
+    });
+    preloadProductImages(sources, [IMAGE_WIDTH.card]);
+  }, [inView, products]);
 
   if (!products.length) return null;
 
   return (
-    <section className="mt-14 pt-10 border-t border-gray-200" aria-labelledby="related-products-heading">
+    <section
+      ref={ref}
+      className="mt-14 pt-10 border-t border-gray-200"
+      aria-labelledby="related-products-heading"
+    >
       <h2
         id="related-products-heading"
         className="text-xl font-normal text-gray-900 mb-8"
@@ -24,13 +42,19 @@ const RelatedProducts = ({ products }: RelatedProductsProps) => {
       </h2>
 
       <ul className="grid grid-cols-2 md:grid-cols-4 gap-6 list-none p-0 m-0">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <li key={product.id} className="flex flex-col text-center group">
             <Link
               to={`/product/${product.id}`}
               className="relative block aspect-square border border-gray-100 rounded overflow-hidden mb-3"
             >
-              <ProductCardImage product={product} className="w-full h-full" priority={false}>
+              <ProductCardImage
+                product={product}
+                className="w-full h-full"
+                loadWhenVisible={inView}
+                preloadSecondary={inView}
+                priority={inView && index < 2}
+              >
                 {product.isSale && (
                   <span className="absolute top-2 left-2 z-10 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 uppercase">
                     Sale!

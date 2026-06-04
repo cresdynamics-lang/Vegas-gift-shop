@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getDashboardStats, getOrders, getCustomers } from '../controller/admin.controller';
+import { getDashboardStats, getOrders, getCustomers, updateOrderStatus } from '../controller/admin.controller';
 import { getSettings, updateSettings } from '../controller/settings.controller';
 import { uploadImage } from '../controller/upload.controller';
 import {
@@ -17,6 +17,7 @@ router.use(verifyToken, requireAdmin);
 
 router.get('/stats', getDashboardStats);
 router.get('/orders', getOrders);
+router.patch('/orders/:id', updateOrderStatus);
 router.get('/customers', getCustomers);
 router.get('/reviews', getAdminReviews);
 router.post('/reviews', createAdminReview);

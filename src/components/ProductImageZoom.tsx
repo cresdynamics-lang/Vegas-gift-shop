@@ -59,12 +59,14 @@ const ProductImageZoom = ({ src, alt, className = '', children, priority = true 
       onMouseMove={handleMove}
     >
       <OptimizedImage
+        key={src}
         src={src}
         alt={alt}
         priority={priority}
         width={IMAGE_WIDTH.detail}
         draggable={false}
         sizes="(max-width: 1024px) 100vw, 50vw"
+        showPlaceholder={false}
         className="w-full h-full object-contain select-none will-change-transform"
         style={{
           transform: active ? `scale(${ZOOM_SCALE})` : 'scale(1)',

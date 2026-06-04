@@ -20,19 +20,26 @@ export function getProductSecondaryImage(product: Product): string | null {
   return secondary ?? null;
 }
 
-/** Thumbnail strip below main image (Rio-style). Pads single-image products to 4 thumbs. */
+/** Thumbnail strip below main image — unique angles only (no duplicate placeholders). */
 export function getProductGallery(product: Product): string[] {
-  const base =
+  const raw =
     product.images && product.images.length > 0
-      ? [...product.images]
+      ? product.images
       : product.image
         ? [product.image]
         : ['/hero.png'];
 
-  if (base.length >= 2) return base;
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const src of raw) {
+    if (!src || isBrokenProductImage(src)) continue;
+    const key = src.trim();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(key);
+  }
 
-  const main = base[0];
-  return [main, main, main, main];
+  return unique.length > 0 ? unique : ['/hero.png'];
 }
 
 export function getShortProductIntro(product: Product): string {

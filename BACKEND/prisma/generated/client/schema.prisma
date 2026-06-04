@@ -79,8 +79,9 @@ model Product {
 
 model Order {
   id              String      @id @default(uuid())
-  userId          String
-  user            User        @relation(fields: [userId], references: [id])
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  customerEmail   String?
   total           Float
   status          OrderStatus @default(PENDING)
   items           OrderItem[]

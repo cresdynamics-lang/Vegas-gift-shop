@@ -28,7 +28,7 @@ const OptimizedImage = ({
   alt = '',
   className = '',
   style,
-  showPlaceholder = true,
+  showPlaceholder = !priority,
   src: srcProp,
   ...props
 }: OptimizedImageProps) => {

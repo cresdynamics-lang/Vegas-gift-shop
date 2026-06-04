@@ -18,6 +18,9 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { API_URL } from '../../config';
+
+const feedBase = API_URL.replace(/\/$/, '');
 
 export const Analytics: React.FC = () => {
   return (
@@ -114,6 +117,39 @@ export const Analytics: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Catalog feeds for Meta + Google */}
+      <Card className="border-none shadow-card rounded-[32px] overflow-hidden">
+        <CardHeader className="p-8">
+          <CardTitle className="text-xl font-serif">Catalog feeds (live from database)</CardTitle>
+          <CardDescription>
+            Register these URLs in Google Merchant Center and Meta Commerce Manager. Product{' '}
+            <code className="text-xs bg-brand-stone/40 px-1 rounded">id</code> matches{' '}
+            <code className="text-xs bg-brand-stone/40 px-1 rounded">/product/:id</code> on the
+            storefront. See <code className="text-xs">TRACKING.md</code> for Pixel / GA4 setup.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-8 pt-0 space-y-3 text-sm font-mono text-brand-charcoal break-all">
+          <p>
+            <span className="font-bold text-brand-text-muted uppercase text-[10px] tracking-wider block mb-1">
+              Google Merchant
+            </span>
+            {feedBase}/feeds/google.xml
+          </p>
+          <p>
+            <span className="font-bold text-brand-text-muted uppercase text-[10px] tracking-wider block mb-1">
+              Meta catalog CSV
+            </span>
+            {feedBase}/feeds/meta-catalog.csv
+          </p>
+          <p>
+            <span className="font-bold text-brand-text-muted uppercase text-[10px] tracking-wider block mb-1">
+              Debug JSON
+            </span>
+            {feedBase}/feeds/products.json
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Traffic Sources */}
       <Card className="border-none shadow-card rounded-[32px] overflow-hidden">

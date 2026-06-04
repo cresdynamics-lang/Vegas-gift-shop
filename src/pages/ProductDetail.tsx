@@ -27,8 +27,13 @@ import type { ProductPackageSection, ProductAttribute } from '../data/products';
 import { API_URL } from '../config';
 import { syncProductToBackend } from '../utils/syncProductToBackend';
 import { formatDisplayText } from '../utils/formatText';
-import { IMAGE_WIDTH, preloadImage } from '../utils/imageUtils';
-import OptimizedImage from '../components/OptimizedImage';
+import {
+  IMAGE_WIDTH,
+  getProductImageUrl,
+  preloadImage,
+  preloadProductImages,
+} from '../utils/imageUtils';
+import { trackViewContent } from '../tracking';
 import {
   RIO_DELIVERY_BULLETS,
   RIO_CUSTOMIZATION_FIELDS,
@@ -99,8 +104,8 @@ const ProductDetail = () => {
   useEffect(() => {
     setActiveImage(0);
     if (product) {
-      const main = getProductGallery(product)[0];
-      if (main) preloadImage(main);
+      const urls = getProductGallery(product);
+      preloadProductImages(urls, [IMAGE_WIDTH.detail, IMAGE_WIDTH.thumb]);
     }
     if (product?.attributes) {
       const initial: Record<string, string> = {};
@@ -115,8 +120,26 @@ const ProductDetail = () => {
 
   useEffect(() => {
     const src = gallery[activeImage];
-    if (src) preloadImage(src);
+    if (src) {
+      preloadImage(src, IMAGE_WIDTH.detail);
+      preloadImage(src, IMAGE_WIDTH.thumb);
+    }
   }, [activeImage, gallery]);
+
+  const prefetchGalleryImage = (index: number) => {
+    const src = gallery[index];
+    if (src) preloadImage(src, IMAGE_WIDTH.detail);
+  };
+
+  useEffect(() => {
+    if (!product) return;
+    trackViewContent({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+    });
+  }, [product?.id, product?.price, product?.name]);
 
   useEffect(() => {
     fetch(`${API_URL}/api/settings/public`)
@@ -257,29 +280,40 @@ const ProductDetail = () => {
                 )}
               </ProductImageZoom>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {gallery.map((src, i) => (
-                <button
-                  key={`${src}-${i}`}
-                  type="button"
-                  onClick={() => setActiveImage(i)}
-                  className={`aspect-square border rounded overflow-hidden p-1 bg-white transition-all ${
-                    activeImage === i
-                      ? 'border-red-600 ring-1 ring-red-600'
-                      : 'border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  <OptimizedImage
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    width={IMAGE_WIDTH.thumb}
-                    sizes="80px"
-                    className="w-full h-full object-contain"
-                  />
-                </button>
-              ))}
-            </div>
+            {gallery.length > 1 && (
+              <div
+                className={`grid gap-2 ${
+                  gallery.length === 2
+                    ? 'grid-cols-2'
+                    : gallery.length === 3
+                      ? 'grid-cols-3'
+                      : 'grid-cols-4'
+                }`}
+              >
+                {gallery.map((src, i) => (
+                  <button
+                    key={`${src}-${i}`}
+                    type="button"
+                    onClick={() => setActiveImage(i)}
+                    onMouseEnter={() => prefetchGalleryImage(i)}
+                    onFocus={() => prefetchGalleryImage(i)}
+                    className={`aspect-square border rounded overflow-hidden p-1 bg-white transition-all ${
+                      activeImage === i
+                        ? 'border-red-600 ring-1 ring-red-600'
+                        : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    <img
+                      src={getProductImageUrl(src, IMAGE_WIDTH.thumb)}
+                      alt=""
+                      loading={i < 4 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Purchase column, Rio layout */}

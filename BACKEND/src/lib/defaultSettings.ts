@@ -36,6 +36,7 @@ export const DEFAULT_SETTINGS = {
     adminNotificationEmail: 'admin@vegasgifts.co.ke',
     smsEnabled: false,
     smsPhone: '',
+    whatsappOrderConfirmationEnabled: true,
   },
   googleReviews: {
     enabled: true,

@@ -59,6 +59,7 @@ export interface StoreSettings {
     adminNotificationEmail: string;
     smsEnabled: boolean;
     smsPhone: string;
+    whatsappOrderConfirmationEnabled: boolean;
   };
   googleReviews: GoogleReviewsSettings;
 }
@@ -102,6 +103,7 @@ export const DEFAULT_SETTINGS: StoreSettings = {
     adminNotificationEmail: 'admin@vegasgifts.co.ke',
     smsEnabled: false,
     smsPhone: '',
+    whatsappOrderConfirmationEnabled: true,
   },
   googleReviews: {
     enabled: true,

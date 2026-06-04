@@ -14,6 +14,10 @@ interface ProductCardImageProps {
   imageClassName?: string;
   children?: ReactNode;
   priority?: boolean;
+  /** Defer image fetch until parent section is near viewport (e.g. related products). */
+  loadWhenVisible?: boolean;
+  /** Preload hover image in background (disable for below-fold grids). */
+  preloadSecondary?: boolean;
 }
 
 const fade =
@@ -29,6 +33,8 @@ const ProductCardImage = ({
   imageClassName = 'p-2',
   children,
   priority = false,
+  loadWhenVisible = true,
+  preloadSecondary = true,
 }: ProductCardImageProps) => {
   const primarySrc = sanitizeProductImageSrc(product.image);
   const secondaryRaw = getProductSecondaryImage(product);
@@ -40,6 +46,7 @@ const ProductCardImage = ({
   const [hovering, setHovering] = useState(false);
   const [secondaryReady, setSecondaryReady] = useState(false);
   const [secondaryFailed, setSecondaryFailed] = useState(false);
+  const [secondaryDisplayUrl, setSecondaryDisplayUrl] = useState<string | null>(null);
 
   const primaryUrl = getProductImageUrl(primarySrc, IMAGE_WIDTH.card);
   const secondaryUrl = secondarySrc
@@ -52,19 +59,31 @@ const ProductCardImage = ({
   useEffect(() => {
     setSecondaryReady(false);
     setSecondaryFailed(false);
-    if (!secondarySrc) return;
+    setSecondaryDisplayUrl(null);
+    if (!secondarySrc || !preloadSecondary || !loadWhenVisible) return;
 
     const img = new Image();
     img.decoding = 'async';
-    img.onload = () => setSecondaryReady(true);
-    img.onerror = () => {
-      const fallback = new Image();
-      fallback.onload = () => setSecondaryReady(true);
-      fallback.onerror = () => setSecondaryFailed(true);
-      fallback.src = getStaticAssetUrl(secondarySrc);
+    img.onload = () => {
+      setSecondaryDisplayUrl(secondaryUrl);
+      setSecondaryReady(true);
     };
-    img.src = getProductImageUrl(secondarySrc, IMAGE_WIDTH.card);
-  }, [secondarySrc]);
+    img.onerror = () => {
+      if (secondarySrc) {
+        const fallback = getStaticAssetUrl(secondarySrc);
+        const retry = new Image();
+        retry.onload = () => {
+          setSecondaryDisplayUrl(fallback);
+          setSecondaryReady(true);
+        };
+        retry.onerror = () => setSecondaryFailed(true);
+        retry.src = fallback;
+        return;
+      }
+      setSecondaryFailed(true);
+    };
+    img.src = secondaryUrl || '';
+  }, [secondarySrc, secondaryUrl, preloadSecondary, loadWhenVisible]);
 
   const imgClass = `w-full h-full object-contain ${imageClassName}`;
 
@@ -80,31 +99,35 @@ const ProductCardImage = ({
           swapVisible ? 'opacity-0' : 'opacity-100'
         } ${!secondarySrc ? 'group-hover:scale-[1.03] transition-transform duration-500' : ''}`}
       >
-        <img
-          src={primaryUrl}
-          alt={product.name}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          {...(priority ? { fetchPriority: 'high' as const } : {})}
-          className={imgClass}
-          onError={(e) => {
-            const el = e.currentTarget;
-            if (el.src !== getStaticAssetUrl(primarySrc)) {
-              el.src = getStaticAssetUrl(primarySrc);
-            }
-          }}
-        />
+        {loadWhenVisible ? (
+          <img
+            src={primaryUrl}
+            alt={product.name}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            {...(priority ? { fetchPriority: 'high' as const } : {})}
+            className={imgClass}
+            onError={(e) => {
+              const el = e.currentTarget;
+              if (el.src !== getStaticAssetUrl(primarySrc)) {
+                el.src = getStaticAssetUrl(primarySrc);
+              }
+            }}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-100 animate-pulse" aria-hidden />
+        )}
       </div>
 
       {/* Secondary — preloaded, only shown when ready + hovered */}
-      {secondaryUrl && !secondaryFailed && (
+      {secondaryDisplayUrl && !secondaryFailed && (
         <div
           className={`absolute inset-0 ${fade} ${
             swapVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-hidden={!swapVisible}
         >
-          <img src={secondaryUrl} alt="" className={imgClass} />
+          <img src={secondaryDisplayUrl} alt="" className={imgClass} />
         </div>
       )}
 

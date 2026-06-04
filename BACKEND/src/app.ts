@@ -10,6 +10,8 @@ import productRoutes from "./routes/product.routes";
 import authRoutes from "./routes/auth.routes";
 import adminRoutes from "./routes/admin.routes";
 import imageRoutes from "./routes/image.routes";
+import orderRoutes from "./routes/order.routes";
+import feedRoutes from "./routes/feed.routes";
 import { getPublicSettings } from "./controller/settings.controller";
 
 dotenv.config();
@@ -25,8 +27,10 @@ app.use(express.json({ limit: "2mb" }));
 app.use("/uploads", express.static(uploadsPath));
 
 app.use("/api/img", imageRoutes);
+app.use("/feeds", feedRoutes);
 
 app.use("/api/auth", authRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/admin", adminRoutes);
 app.get("/api/settings/public", getPublicSettings);

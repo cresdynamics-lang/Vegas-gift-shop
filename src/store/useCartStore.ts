@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { formatDisplayText } from '../utils/formatText';
 import { persist } from 'zustand/middleware';
+import { trackAddToCart } from '../tracking';
 
 export interface CartItemOptions {
   /** @deprecated Use variants — kept for older cart entries */
@@ -83,6 +84,13 @@ export const useCartStore = create<CartState>()(
             ],
           });
         }
+
+        trackAddToCart({
+          id: product.id,
+          name: baseName,
+          price: product.price,
+          quantity,
+        });
       },
       removeItem: (id) => {
         set({ items: get().items.filter((item) => item.id !== id) });

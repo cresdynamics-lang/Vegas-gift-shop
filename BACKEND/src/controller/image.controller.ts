@@ -50,7 +50,7 @@ export const serveOptimizedImage = async (req: Request, res: Response) => {
     const output = await sharp(filePath, { failOn: 'none' })
       .rotate()
       .resize({ width, withoutEnlargement: true })
-      .webp({ quality: 80, effort: 4 })
+      .webp({ quality: 78, effort: 2 })
       .toBuffer();
 
     await fs.writeFile(cachePath, output);

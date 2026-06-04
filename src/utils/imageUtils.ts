@@ -1,6 +1,7 @@
 import { API_URL } from '../config';
 
 const preloaded = new Set<string>();
+const prefetching = new Set<string>();
 
 export const PRODUCT_CARD_FALLBACK = '/collection-bg.png';
 
@@ -12,15 +13,36 @@ export const IMAGE_WIDTH = {
   hero: 1200,
 } as const;
 
-/** Hint the browser to fetch an image early (e.g. product hero). */
-export function preloadImage(src: string): void {
-  if (!src || preloaded.has(src)) return;
-  preloaded.add(src);
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.as = 'image';
-  link.href = getProductImageUrl(src, IMAGE_WIDTH.detail);
-  document.head.appendChild(link);
+/** Fetch a URL into the browser cache (parallel-friendly). */
+export function prefetchImageUrl(url: string): void {
+  if (!url || prefetching.has(url)) return;
+  prefetching.add(url);
+  const img = new Image();
+  img.decoding = 'async';
+  img.onload = () => preloaded.add(url);
+  img.onerror = () => prefetching.delete(url);
+  img.src = url;
+}
+
+/** Hint the browser to fetch resized product images early. */
+export function preloadImage(src: string, width: number = IMAGE_WIDTH.detail): void {
+  if (!src) return;
+  const url = getProductImageUrl(src, width);
+  if (preloaded.has(url)) return;
+  prefetchImageUrl(url);
+}
+
+/** Preload several assets at common sizes (gallery + related cards). */
+export function preloadProductImages(
+  sources: string[],
+  widths: number[] = [IMAGE_WIDTH.detail, IMAGE_WIDTH.thumb, IMAGE_WIDTH.card]
+): void {
+  const unique = [...new Set(sources.filter(Boolean))];
+  for (const src of unique) {
+    for (const w of widths) {
+      preloadImage(src, w);
+    }
+  }
 }
 
 /** Encode local asset paths for use in img src (spaces, etc.). */
